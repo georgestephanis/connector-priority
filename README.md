@@ -61,7 +61,7 @@ $provider = wp_get_preferred_ai_connector();
 
 ## Architecture notes
 
-Source JavaScript and CSS live in `src/`; built assets are committed to `build/` and served by WordPress. `npm run build` (webpack via `@wordpress/scripts`) compiles `connector-priority-nav.js` and copies the ES-module content file unchanged so WordPress's Script Module system can load it natively with `type="module"`.
+Source JavaScript and CSS live in `src/`; built assets are committed to `build/` and served by WordPress. `npm run build` (webpack via `@wordpress/scripts`) bundles both JS entries as native ES modules so WordPress's Script Module system can load them with `type="module"`. dnd-kit is bundled into the content file; React/ReactDOM are externalised to the WP page globals.
 
 The drag-and-drop UI (`src/priority-content.js`) is a native ES module registered as a WordPress Script Module and mounted at the `/priority` route inside the existing connectors SPA. Navigation uses the Boot module's `?p=` path-parameter convention.
 

@@ -7,8 +7,7 @@ canonical form — use it verbatim.
 
 > **Foundation.** Connector Priority lives inside the WordPress 7.0 admin.
 > Wherever possible it inherits from WordPress core admin styles. The plugin
-> owns exactly two things: a single accent token (`--cp-accent`, defaulting
-> to WP admin blue) and the rank-ordered list metaphor. Everything else
+> owns exactly one thing: the rank-ordered list metaphor. Everything else
 > should look like it was always part of the admin.
 
 ---
@@ -143,13 +142,13 @@ draggable to reorder.
 | Height (default) | 56px |
 | Padding | 12px 16px |
 | Gap between rows | 8px |
-| Radius | `--cp-radius-3` |
-| Border | `1px solid var(--cp-border-soft)` |
-| Active background | `var(--cp-accent)` with `color: #fff` |
-| Active border | `1px solid var(--cp-accent-dark)` |
-| Active shadow | `0 6px 18px rgba(34,113,177,.22)` |
+| Radius | 6px |
+| Border | `1px solid #dcdcde` |
+| Active background | `var(--wp-admin-theme-color, #2271b1)` with `color: #fff` |
+| Active border | `1px solid var(--wp-admin-theme-color-darker-20, #0a4b78)` |
+| Active shadow | `0 6px 18px rgba(var(--wp-admin-theme-color--rgb), 0.22)` |
 | Active lift | `transform: translateX(-6px)` |
-| Hover (inactive) | `border-color: var(--cp-border)` |
+| Hover (inactive) | `border-color: #c3c4c7` |
 | Drag handle | `⋮⋮` glyph at 60% opacity |
 | Rank badge | 22×22 circle, weight 700, size 12 |
 
@@ -157,8 +156,7 @@ draggable to reorder.
 
 - **Active row:** circle fill `rgba(255,255,255,0.18)`, stroke
   `rgba(255,255,255,0.5)`, text `#fff`.
-- **Inactive row:** circle fill `var(--cp-canvas)`, stroke
-  `var(--cp-border)`, text `var(--cp-text-muted)`.
+- **Inactive row:** circle fill `#f0f0f1`, stroke `#c3c4c7`, text `#50575e`.
 
 ### 5.3 Buttons
 
@@ -172,10 +170,10 @@ For per-connector state. Always paired with a colored dot.
 
 | State | Dot color | Label |
 |-------|-----------|-------|
-| Active | `--cp-green` | "Active" |
-| Ready | `--cp-text-muted` | "Ready" |
-| Rate-limited | `--cp-orange` | "Rate-limited" |
-| Offline | `--cp-red` | "Offline" |
+| Active | `#00a32a` | "Active" |
+| Ready | `#50575e` | "Ready" |
+| Rate-limited | `#dba617` | "Rate-limited" |
+| Offline | `#d63638` | "Offline" |
 
 Status colors **never** indicate priority — that's blue+number's job.
 
@@ -189,9 +187,9 @@ These are the rules the design enforces. When in doubt, fall back to them.
    chrome at first glance. Borrow tokens, radii, and density. Only the
    icon and banner are allowed to feel a little more "branded."
 
-2. **One accent.** Reserve `--cp-accent` for "the prioritized thing." Every
-   other rank uses neutral surfaces. The whole UI should feel like a
-   sorted list, not a rainbow.
+2. **One accent.** Reserve `var(--wp-admin-theme-color)` for "the prioritized
+   thing." Every other rank uses neutral surfaces. The whole UI should feel
+   like a sorted list, not a rainbow.
 
 3. **Rank, never score.** Show ordinal position (1 / 2 / 3) — never
    percentages, weights, or stars. The plugin manages an order, not a

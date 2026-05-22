@@ -12,11 +12,11 @@ change proposals.
 | File | Role |
 |------|------|
 | `connector-priority.php` | Main plugin file. PHP hooks, public API, route registration. Serves assets from `build/`. |
-| `src/priority-content.js` | Source ES module. Exports `stage` — the React drag-and-drop component rendered at the `/priority` SPA route. Copied verbatim to `build/` to preserve the native ES module format. |
-| `src/connector-priority-nav.js` | Source IIFE script. Uses `MutationObserver` to inject a "Set AI Priority Order" button inline with the page title on the right. Locates the flex row containing the title by walking `h1 → parentElement → parentElement` inside `.boot-layout__stage`; appends the button with `margin-left:auto`. Also strips `?p=/` from the URL via `history.replaceState` when the SPA navigates back to the root route. Compiled and minified by webpack into `build/`. |
+| `src/priority-content.js` | Source ES module. Exports `stage` — the React drag-and-drop component rendered at the `/priority` SPA route. Bundled by webpack (includes dnd-kit); React/ReactDOM are externalised to `window.React`/`window.ReactDOM`. Output as a native ES module. |
+| `src/connector-priority-nav.js` | Source ES module. Uses `MutationObserver` to inject a "Set AI Priority Order" button inline with the page title on the right. Locates the flex row containing the title by walking `h1 → parentElement → parentElement` inside `.boot-layout__stage`; appends the button with `margin-left:auto`. Also strips `?p=/` from the URL via `history.replaceState` when the SPA navigates back to the root route. Compiled and minified by webpack into `build/`. |
 | `src/priority-content.css` | Source stylesheet for the priority UI. Copied verbatim to `build/`. |
 | `build/` | Compiled output committed to git. Ready to serve — no build step needed to use the plugin. |
-| `webpack.config.js` | Extends `@wordpress/scripts` defaults: compiles the nav script and copies the ES module + CSS unchanged. |
+| `webpack.config.js` | Extends `@wordpress/scripts` defaults: bundles both JS entries as native ES modules (`experiments.outputModule: true`, `library: { type: 'module' }`). React/ReactDOM externalised to WP globals (`externalsType: 'global'`). Copies CSS unchanged via CopyPlugin. |
 | `assets/` | Plugin directory and README images: `icon.svg`, `icon-128x128.png`, `icon-256x256.png`, `banner.svg`, `banner-772x250.png`, `banner-1544x500.png`. |
 | `DESIGN_SYSTEM.md` | Visual design spec: color tokens, typography, spacing, component rules. Read this before touching any CSS or adding new UI. |
 | `GUTENBERG-COMPAT.md` | Diff between core and Gutenberg plugin implementations of the connectors page. Read before touching route registration or the init callbacks. Includes the versions it was written against so you can tell if it's stale. |
@@ -31,12 +31,14 @@ change proposals.
   immediately usable without a local build step (e.g. via `git:directory` in
   Playground), but always rebuild after editing source files.
 
-- **`priority-content.js` must not be webpack-bundled.** It is a native ES
-  module loaded by WordPress's Script Module system (`wp_register_script_module`)
-  as `type="module"`. The webpack config copies it unchanged. Do not add npm
-  `import` statements that require bundling, and do not change the webpack config
-  to compile it — the named `export { stage }` must survive intact. Use
-  `window.wp.*` globals for WordPress APIs.
+- **Both built files are native ES modules.** `priority-content.js` and
+  `connector-priority-nav.js` are output with `experiments.outputModule: true`
+  so WordPress's Script Module system loads them as `type="module"`. dnd-kit is
+  bundled into `priority-content.js`; React and ReactDOM are externalised to
+  `window.React` / `window.ReactDOM`. The named `export { stage }` from
+  `priority-content.js` must survive — do not remove `library: { type: 'module' }`
+  from the webpack config. Use `window.wp.*` globals for all WordPress core APIs
+  (element, i18n, apiFetch).
 
 - **No core file edits.** All functionality is implemented via WordPress hooks
   (`add_action`, `add_filter`). Core changes belong in `CORE-CHANGES.md` as
@@ -139,6 +141,8 @@ All three entry points mount the Boot module and render content inside
 - [ ] All registered AI providers appear in the list with name, logo (if any),
       and Connected/Not connected badge.
 - [ ] Drag a row to a new position; ranking numbers update.
+- [ ] Drag the first (blue) item to another position — the newly promoted item
+      animates white → blue and the demoted item animates blue → white (~0.5 s).
 - [ ] Click "Save Priority Order"; a "✓ Saved!" confirmation appears briefly.
 - [ ] Reload page; the saved order persists.
 - [ ] `wp_get_connector_priority_order()` returns the saved order (padded with
