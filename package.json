@@ -1,0 +1,22 @@
+{
+	"name": "connector-priority",
+	"description": "Drag-and-drop priority ordering for AI connectors on Settings > Connectors.",
+	"version": "1.0.0",
+	"author": "George Stephanis <georgestephanis>",
+	"homepage": "https://stephanis.me",
+	"license": "GPL-2.0-or-later",
+	"private": true,
+	"scripts": {
+		"build":        "wp-scripts build",
+		"build-plugin": "wp-scripts build-plugin",
+		"lint:js":      "wp-scripts lint-js 'src/**/*.js'",
+		"lint:css":     "wp-scripts lint-style 'src/**/*.css'",
+		"lint:php":     "composer run lint:php",
+		"format:js":    "wp-scripts format 'src/**/*.js'",
+		"format:css":   "wp-scripts format 'src/**/*.css'",
+		"format":       "npm run format:js && npm run format:css"
+	},
+	"devDependencies": {
+		"@wordpress/scripts": "^32.2.0"
+	}
+}

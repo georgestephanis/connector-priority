@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<ruleset name="Connector Priority">
+	<description>WordPress Coding Standards for the Connector Priority plugin.</description>
+
+	<!-- Scan only plugin PHP files. -->
+	<file>connector-priority.php</file>
+
+	<!-- Show progress and use colours. -->
+	<arg value="sp"/>
+	<arg name="colors"/>
+
+	<!-- Only check PHP files. -->
+	<arg name="extensions" value="php"/>
+
+	<!-- Ignore generated directories. -->
+	<exclude-pattern>vendor/*</exclude-pattern>
+	<exclude-pattern>node_modules/*</exclude-pattern>
+
+	<!-- Enforce WordPress coding standards. -->
+	<rule ref="WordPress-Extra"/>
+
+	<!-- Enforce correct text domain. -->
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="connector-priority"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Minimum supported WordPress version (for deprecation checks). -->
+	<config name="minimum_supported_wp_version" value="7.0"/>
+</ruleset>

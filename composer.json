@@ -1,0 +1,31 @@
+{
+	"name": "georgestephanis/connector-priority",
+	"description": "Drag-and-drop priority ordering for AI connectors on Settings > Connectors.",
+	"type": "wordpress-plugin",
+	"license": "GPL-2.0-or-later",
+	"authors": [
+		{
+			"name": "George Stephanis",
+			"homepage": "https://stephanis.me",
+			"role": "Developer"
+		}
+	],
+	"require": {
+		"php": ">=8.1"
+	},
+	"require-dev": {
+		"squizlabs/php_codesniffer": "^3.10",
+		"wp-coding-standards/wpcs": "^3.1",
+		"phpcsstandards/phpcsutils": "^1.0",
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+	},
+	"scripts": {
+		"lint:php": "phpcs",
+		"lint:php:fix": "phpcbf"
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	}
+}

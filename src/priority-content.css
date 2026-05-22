@@ -1,0 +1,190 @@
+.cp-page {
+	box-sizing: border-box;
+	font-family: -apple-system, blinkmacsystemfont, "Segoe UI", roboto, sans-serif;
+	font-size: 13px;
+	margin: 0 auto;
+	max-width: 680px;
+	padding: 24px;
+	width: 100%;
+}
+
+.cp-page__back {
+	color: #3858e9;
+	display: inline-block;
+	font-size: 13px;
+	margin-bottom: 16px;
+	text-decoration: none;
+}
+
+.cp-page__back:hover {
+	text-decoration: underline;
+}
+
+.cp-page__title {
+	font-size: 20px;
+	font-weight: 500;
+	margin: 0 0 8px;
+}
+
+.cp-page__desc {
+	color: #6d6d6d;
+	line-height: 1.6;
+	margin: 0 0 20px;
+}
+
+/* Priority list ----------------------------------------------------------- */
+
+.cp-list {
+	list-style: none;
+	margin: 0 0 20px;
+	padding: 0;
+}
+
+.cp-item {
+	align-items: center;
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	cursor: grab;
+	display: flex;
+	gap: 12px;
+	margin-bottom: 8px;
+	padding: 14px 16px;
+	transition:
+		box-shadow 0.15s,
+		opacity 0.15s,
+		border-color 0.15s;
+	user-select: none;
+}
+
+.cp-item:active {
+	cursor: grabbing;
+}
+
+.cp-item--dragging {
+	box-shadow: none;
+	opacity: 0.4;
+}
+
+.cp-item--drag-over {
+	border-color: #3858e9;
+	box-shadow: 0 0 0 2px rgba(56, 88, 233, 0.2);
+}
+
+/* Drag handle ------------------------------------------------------------- */
+
+.cp-drag-handle {
+	color: #aaa;
+	cursor: grab;
+	flex-shrink: 0;
+	font-size: 18px;
+	line-height: 1;
+}
+
+/* Rank badge -------------------------------------------------------------- */
+
+.cp-rank {
+	align-items: center;
+	background: #f0f0f0;
+	border-radius: 50%;
+	color: #1e1e1e;
+	display: flex;
+	flex-shrink: 0;
+	font-size: 11px;
+	font-weight: 600;
+	height: 24px;
+	justify-content: center;
+	width: 24px;
+}
+
+.cp-item--drag-over .cp-rank {
+	background: #3858e9;
+	color: #fff;
+}
+
+/* Logo -------------------------------------------------------------------- */
+
+.cp-logo {
+	border-radius: 4px;
+	flex-shrink: 0;
+	object-fit: contain;
+}
+
+.cp-logo--placeholder {
+	background: #e0e0e0;
+	border-radius: 4px;
+	display: inline-block;
+	height: 32px;
+	width: 32px;
+}
+
+/* Info text --------------------------------------------------------------- */
+
+.cp-info {
+	flex: 1;
+	min-width: 0;
+}
+
+.cp-name {
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.cp-desc {
+	color: #6d6d6d;
+	display: block;
+	font-size: 12px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Status badge ------------------------------------------------------------ */
+
+.cp-badge {
+	border-radius: 100px;
+	flex-shrink: 0;
+	font-size: 11px;
+	font-weight: 500;
+	padding: 2px 8px;
+}
+
+.cp-badge--connected {
+	background: #c5f7cc;
+	color: #002900;
+}
+
+.cp-badge--inactive {
+	background: #f0f0f0;
+	color: #6d6d6d;
+}
+
+/* Action bar -------------------------------------------------------------- */
+
+.cp-actions {
+	align-items: center;
+	display: flex;
+	gap: 12px;
+}
+
+.cp-save-success {
+	color: #007f30;
+	font-size: 13px;
+}
+
+.cp-save-error {
+	color: #cc1818;
+	font-size: 13px;
+}
+
+/* Empty state ------------------------------------------------------------- */
+
+.cp-empty {
+	color: #6d6d6d;
+	padding: 40px;
+	text-align: center;
+}
