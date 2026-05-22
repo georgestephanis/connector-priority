@@ -143,7 +143,54 @@ import('@wordpress/boot').then(mod => mod.initSinglePage({ mountId, routes }));
 
 This is an internal detail; plugin code does not call `initSinglePage` directly.
 
-### 5. Preload fields
+### 5. Route content CSS class names (JS DOM targeting)
+
+Gutenberg overrides the `wp/routes/connectors-home/content` script module by
+calling `wp_deregister_script_module()` on it before registering its own
+version.  This means **when Gutenberg is active, Gutenberg's content build is
+loaded on every entry point** — including the core direct-file entry point
+`/wp-admin/options-connectors.php`.
+
+Core's content build uses plain, stable global class names:
+
+```
+.admin-ui-page__header-actions
+.admin-ui-page__header-title
+.admin-ui-page__header
+```
+
+Gutenberg's content build uses **CSS Modules**, which hashes every class name at
+compile time:
+
+```
+b7cb5b9daf3a3b25__header-actions   (was: admin-ui-page__header-actions)
+_8113be94e7caf73c__header-title    (was: admin-ui-page__header-title)
+_0625b55e82a0d93d__header          (was: admin-ui-page__header)
+```
+
+These hashes change with Gutenberg releases, so they cannot be hardcoded.
+
+**Consequence:** Any JavaScript that targets DOM elements by their full class
+name (e.g. `querySelector('.admin-ui-page__header-actions')`) will find nothing
+when Gutenberg is active, even on the core entry point.  This includes
+`MutationObserver` callbacks that look for specific class names.
+
+**Safe selector pattern:** Because both builds share a consistent BEM suffix,
+use a CSS attribute substring selector scoped to `.boot-layout__stage` (which is
+provided by the Boot module and is not hashed in either build):
+
+```js
+// Works for core (.admin-ui-page__header-actions)
+// and Gutenberg (b7cb5b9daf3a3b25__header-actions, or whatever the hash is).
+const stage = document.querySelector( '.boot-layout__stage' );
+const actions = stage && stage.querySelector( '[class*="__header-actions"]' );
+```
+
+The same principle applies to any other `admin-ui-page__*` class you might want
+to target from JavaScript: always use `[class*="__suffix"]` scoped inside
+`.boot-layout__stage` rather than the full class name.
+
+### 6. Preload fields
 
 The REST preload path includes slightly different `_fields` values.  Core
 includes additional image-related fields (`image_output_formats`,
@@ -222,3 +269,5 @@ file path may change between releases and that function requires
 | `script_module_data_*` filters | Yes | Yes | Yes |
 | `admin_enqueue_scripts` fires | Yes | Yes | Yes |
 | `admin_init` intercept (standalone) | Yes | Yes | Yes |
+| Route content CSS class names | Global (`admin-ui-page__*`) | CSS Modules hashed | No — use `[class*="__suffix"]` |
+| `.boot-layout__stage` class (boot module) | Global | Global | Yes |

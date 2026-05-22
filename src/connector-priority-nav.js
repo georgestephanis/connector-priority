@@ -3,11 +3,16 @@
  *
  * Injected on the Settings > Connectors page (options-connectors screen).
  * Uses MutationObserver to wait for the Boot module SPA to render the
- * .admin-ui-page__header-actions slot, then inserts a "Set AI Priority Order"
- * button there — inline with the "Connectors" page title on the right side.
+ * page header's action slot, then inserts a "Set AI Priority Order" button
+ * there — inline with the "Connectors" page title on the right side.
  *
  * The link targets the /priority route inside the same SPA by setting the
  * `p` search-parameter that the Boot module's createPathHistory() reads.
+ *
+ * Selector note: WordPress core uses the global class `admin-ui-page__header-actions`
+ * while the Gutenberg plugin compiles the same component with CSS Modules, producing
+ * a hashed class like `b7cb5b9daf3a3b25__header-actions`. Both share the substring
+ * `__header-actions`, so `[class*="__header-actions"]` matches either version.
  */
 /* global MutationObserver */
 ( function () {
@@ -32,8 +37,7 @@
 	}
 
 	/**
-	 * Inject the link into .admin-ui-page__header-actions (right side of the
-	 * page title bar). Idempotent — skips if already present.
+	 * Inject the link into the page header's action slot. Idempotent.
 	 *
 	 * @param {Element} actions
 	 */
@@ -54,14 +58,24 @@
 		if ( isOnPriorityRoute() ) {
 			return;
 		}
-		const actions = document.querySelector( '.admin-ui-page__header-actions' );
+		// .boot-layout__stage is a stable class from the Boot module (both core and
+		// Gutenberg versions). Search within it to avoid matching stale or off-screen
+		// elements from prior navigations.
+		const stage = document.querySelector( '.boot-layout__stage' );
+		if ( ! stage ) {
+			return;
+		}
+		// Core renders .admin-ui-page__header-actions; Gutenberg compiles the same
+		// component with CSS Modules, giving a hash-prefixed class that still ends in
+		// __header-actions. The substring selector matches both without version checks.
+		const actions = stage.querySelector( '[class*="__header-actions"]' );
 		if ( actions ) {
 			injectLink( actions );
 		}
 	}
 
-	// Watch for the Boot module to render .admin-ui-page__header-actions and for
-	// subsequent SPA navigations that swap the stage content.
+	// Watch for the Boot module to render the stage and for subsequent SPA
+	// navigations that swap the stage content.
 	const observer = new MutationObserver( tryInject );
 	observer.observe( document.body, { childList: true, subtree: true } );
 
