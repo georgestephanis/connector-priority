@@ -71,6 +71,8 @@
 	}
 
 	function tryInject() {
+		cleanRootParam();
+
 		if ( isOnPriorityRoute() ) {
 			return;
 		}
