@@ -235,6 +235,87 @@ This single change would propagate priority through the entire chain:
 
 ---
 
+## 7. Always render the `header-actions` slot in the Page component
+
+**File:** `packages/admin-ui/src/page/index.tsx` (or equivalent in both core and
+Gutenberg builds)
+
+**Problem:** The `Page` component only renders the `header-actions` container
+element when the `actions` prop is non-null.  This means plugins have no stable
+DOM node to inject into, forcing structural DOM traversal (e.g. walking from
+`h1` up two levels to its containing flex row) as a fragile substitute.
+
+Compounding this, Gutenberg compiles the component with CSS Modules, so the
+container's class name is an unpredictable hash that changes between releases.
+
+**Proposed change:** Always render the header-actions container, and give it a
+stable, non-hashed global class as a hook point alongside whatever CSS-Modules
+class the build system assigns:
+
+```tsx
+// Before (conditional render)
+{ actions && (
+    <HStack className={ styles['header-actions'] } … >
+        { actions }
+    </HStack>
+) }
+
+// After (always rendered, stable hook class added)
+<HStack
+    className={ `admin-ui-page__header-actions ${ styles['header-actions'] }` }
+    …
+>
+    { actions }
+</HStack>
+```
+
+With this change, `document.querySelector('.admin-ui-page__header-actions')`
+reliably finds the element in both core and Gutenberg builds, and plugins can
+`appendChild` into it without DOM traversal hacks.
+
+---
+
+## 8. `createPathHistory` should omit `?p=` for the root route
+
+**File:** `packages/boot/src/create-path-history.ts`
+
+**Problem:** `createPathHistory()` unconditionally sets the `p` search parameter
+on every navigation, including when navigating back to the root route (`/`).
+This leaves `?p=%2F` in the browser address bar, which looks like a URL error
+to users and breaks "clean URL" sharing.
+
+**Current implementation:**
+
+```js
+createHref: ( href ) => {
+    const searchParams = new URLSearchParams( window.location.search );
+    searchParams.set( 'p', href );
+    return `${ window.location.pathname }?${ searchParams }`;
+},
+```
+
+**Proposed change:** Delete the `p` parameter when navigating to `/`:
+
+```js
+createHref: ( href ) => {
+    const searchParams = new URLSearchParams( window.location.search );
+    if ( href === '/' ) {
+        searchParams.delete( 'p' );
+    } else {
+        searchParams.set( 'p', href );
+    }
+    const qs = searchParams.toString();
+    return qs
+        ? `${ window.location.pathname }?${ qs }`
+        : window.location.pathname;
+},
+```
+
+This also benefits any future SPA that uses `createPathHistory` — the root
+route never pollutes the URL.
+
+---
+
 ## Summary
 
 | Change | Impact | Complexity |
@@ -244,6 +325,10 @@ This single change would propagate priority through the entire chain:
 | `_wp_connectors_get_connector_script_module_data()` sorts by priority | Connectors UI respects order | Low |
 | `applyFilters` hooks in `stage.tsx` | Plugins can inject UI cleanly | Medium |
 | `WP_Connector_Registry::reorder()` | Full chain priority in one hook | Low-Medium |
+| Always render `header-actions` with stable global class | Plugins can inject without DOM traversal | Low |
+| `createPathHistory` omits `?p=` for root route | Clean address bar on back-navigation | Low |
 
 Of these, **#6 (`reorder()`)** combined with **#1+#2 (AI client priority)**
 would give complete end-to-end priority support with minimal core surface area.
+**#7 and #8** are quality-of-life fixes that benefit all Boot-module SPA pages,
+not just the connectors screen.

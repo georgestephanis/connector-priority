@@ -5,11 +5,14 @@
 > - WordPress core **7.1-alpha-62409** (trunk)
 > - Gutenberg plugin **23.2.2**
 >
-> Before acting on any detail here, compare the file modification dates of
-> `wp-includes/build/pages/options-connectors/page-wp-admin.php` and
-> `wp-content/plugins/gutenberg/build/pages/options-connectors/page-wp-admin.php`
-> against the date above.  If either has changed after 2026-05-22, re-read
-> those files and update this document before relying on it.
+> Before acting on any detail here, compare the modification dates of these
+> files against the date above and re-read any that have changed:
+>
+> - `wp-includes/build/pages/options-connectors/page-wp-admin.php` — §1–4
+> - `wp-content/plugins/gutenberg/build/pages/options-connectors/page-wp-admin.php` — §1–4
+> - `wp-includes/build/routes/connectors-home/content.js` — §5
+> - `wp-content/plugins/gutenberg/build/routes/connectors-home/content.js` — §5
+> - `wp-includes/js/dist/script-modules/boot/index.js` — §5 (`.boot-layout__stage` stability)
 
 This document describes the differences between the WordPress core (trunk)
 implementation of the Settings > Connectors page and the Gutenberg plugin's

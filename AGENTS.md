@@ -13,7 +13,7 @@ change proposals.
 |------|------|
 | `connector-priority.php` | Main plugin file. PHP hooks, public API, route registration. Serves assets from `build/`. |
 | `src/priority-content.js` | Source ES module. Exports `stage` — the React drag-and-drop component rendered at the `/priority` SPA route. Copied verbatim to `build/` to preserve the native ES module format. |
-| `src/connector-priority-nav.js` | Source IIFE script. Uses `MutationObserver` to inject a "Set AI Priority Order" button into the page header's action slot, placing it inline with the page title on the right. Uses `[class*="__header-actions"]` inside `.boot-layout__stage` to match both core's global class and Gutenberg's CSS-module-hashed variant. Compiled and minified by webpack into `build/`. |
+| `src/connector-priority-nav.js` | Source IIFE script. Uses `MutationObserver` to inject a "Set AI Priority Order" button inline with the page title on the right. Locates the flex row containing the title by walking `h1 → parentElement → parentElement` inside `.boot-layout__stage`; appends the button with `margin-left:auto`. Also strips `?p=/` from the URL via `history.replaceState` when the SPA navigates back to the root route. Compiled and minified by webpack into `build/`. |
 | `src/priority-content.css` | Source stylesheet for the priority UI. Copied verbatim to `build/`. |
 | `build/` | Compiled output committed to git. Ready to serve — no build step needed to use the plugin. |
 | `webpack.config.js` | Extends `@wordpress/scripts` defaults: compiles the nav script and copies the ES module + CSS unchanged. |
@@ -125,6 +125,8 @@ All three entry points mount the Boot module and render content inside
 - [ ] Activate plugin; visit Settings > Connectors — "Set AI Priority Order"
       button appears inline with the "Connectors" page title on the right.
 - [ ] Click button; page navigates to `?p=/priority` and shows the priority UI.
+- [ ] Navigate back (back link or browser back); URL returns to the connectors
+      page with no `?p=` parameter — `?p=%2F` must not appear in the address bar.
 - [ ] All registered AI providers appear in the list with name, logo (if any),
       and Connected/Not connected badge.
 - [ ] Drag a row to a new position; ranking numbers update.
@@ -141,8 +143,8 @@ auto-discovering models — that requires the core changes described in
 [CORE-CHANGES.md](CORE-CHANGES.md). Until those land, callers must use
 `wp_get_preferred_ai_connector()` explicitly.
 
-The "Set AI Priority Order" button is injected via `MutationObserver` into the
-page header's action slot (`[class*="__header-actions"]` inside
-`.boot-layout__stage`) rather than a proper JS SlotFill because the connectors SPA
-does not currently expose `applyFilters()` hook points in its React tree (see
-CORE-CHANGES.md §5).
+The "Set AI Priority Order" button is injected via `MutationObserver` by walking
+`h1 → parentElement → parentElement` inside `.boot-layout__stage` rather than
+targeting a stable header-actions element, because: (a) the connectors SPA exposes
+no `applyFilters()` SlotFill hook points, and (b) the `header-actions` DOM element
+is absent when no built-in actions are registered. See CORE-CHANGES.md §5 and §7.
