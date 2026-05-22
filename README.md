@@ -1,5 +1,7 @@
 # Connector Priority
 
+![Connector Priority](assets/banner-772x250.png)
+
 A WordPress plugin that adds drag-and-drop priority ordering for AI connectors on the **Settings > Connectors** screen introduced in WordPress 7.0.
 
 ## What it does

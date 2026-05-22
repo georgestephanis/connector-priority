@@ -1,18 +1,70 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Design tokens — see DESIGN_SYSTEM.md for the full spec.
+ * Accent follows the WP admin color scheme via core CSS variables.
+ * ───────────────────────────────────────────────────────────────────────────── */
+
+:root {
+
+	/* Brand — mirrors the active WP admin color scheme automatically */
+	--cp-accent: var(--wp-admin-theme-color, #2271b1);
+	--cp-accent-hover: var(--wp-admin-theme-color-darker-10, #135e96);
+	--cp-accent-dark: var(--wp-admin-theme-color-darker-20, #0a4b78);
+
+	/* Text */
+	--cp-text: #1d2327;
+	--cp-text-2: #2c3338;
+	--cp-text-muted: #50575e;
+
+	/* Surface */
+	--cp-surface: #fff;
+	--cp-canvas: #f0f0f1;
+	--cp-soft: #f6f7f7;
+
+	/* Border */
+	--cp-border: #c3c4c7;
+	--cp-border-soft: #dcdcde;
+
+	/* Status */
+	--cp-green: #00a32a;
+	--cp-orange: #dba617;
+	--cp-red: #d63638;
+
+	/* Typography */
+	--cp-font: -apple-system, blinkmacsystemfont, "Segoe UI Adjusted",
+		"Segoe UI", "Liberation Sans", sans-serif;
+
+	/* Spacing */
+	--cp-space-1: 4px;
+	--cp-space-2: 8px;
+	--cp-space-3: 12px;
+	--cp-space-4: 16px;
+	--cp-space-5: 24px;
+	--cp-space-6: 32px;
+
+	/* Geometry */
+	--cp-radius-1: 3px;
+	--cp-radius-2: 4px;
+	--cp-radius-3: 6px;
+	--cp-stroke: 1px;
+}
+
+/* Page shell ──────────────────────────────────────────────────────────────── */
+
 .cp-page {
 	box-sizing: border-box;
-	font-family: -apple-system, blinkmacsystemfont, "Segoe UI", roboto, sans-serif;
+	font-family: var(--cp-font);
 	font-size: 13px;
 	margin: 0 auto;
 	max-width: 680px;
-	padding: 24px;
+	padding: var(--cp-space-5);
 	width: 100%;
 }
 
 .cp-page__back {
-	color: #3858e9;
+	color: var(--cp-accent);
 	display: inline-block;
 	font-size: 13px;
-	margin-bottom: 16px;
+	margin-bottom: var(--cp-space-4);
 	text-decoration: none;
 }
 
@@ -22,34 +74,35 @@
 
 .cp-page__title {
 	font-size: 20px;
-	font-weight: 500;
-	margin: 0 0 8px;
+	font-weight: 600;
+	margin: 0 0 var(--cp-space-2);
 }
 
 .cp-page__desc {
-	color: #6d6d6d;
-	line-height: 1.6;
-	margin: 0 0 20px;
+	color: var(--cp-text-muted);
+	line-height: 1.5;
+	margin: 0 0 var(--cp-space-5);
 }
 
-/* Priority list ----------------------------------------------------------- */
+/* Priority list ───────────────────────────────────────────────────────────── */
 
 .cp-list {
 	list-style: none;
-	margin: 0 0 20px;
+	margin: 0 0 var(--cp-space-5);
 	padding: 0;
 }
 
 .cp-item {
 	align-items: center;
-	background: #fff;
-	border: 1px solid #ddd;
-	border-radius: 8px;
+	background: var(--cp-surface);
+	border: var(--cp-stroke) solid var(--cp-border-soft);
+	border-radius: var(--cp-radius-3);
+	color: var(--cp-text);
 	cursor: grab;
 	display: flex;
-	gap: 12px;
-	margin-bottom: 8px;
-	padding: 14px 16px;
+	gap: var(--cp-space-3);
+	margin-bottom: var(--cp-space-2);
+	padding: var(--cp-space-3) var(--cp-space-4);
 	transition:
 		box-shadow 0.15s,
 		opacity 0.15s,
@@ -61,64 +114,91 @@
 	cursor: grabbing;
 }
 
+/* Rank-1 accent row: the top-priority connector (design system §5.1). */
+.cp-list > .cp-item:first-child {
+	background: var(--cp-accent);
+	border-color: var(--cp-accent-dark);
+	box-shadow: 0 6px 18px rgba(34, 113, 177, 0.22);
+	color: #fff;
+	transform: translateX(-6px);
+}
+
 .cp-item--dragging {
 	box-shadow: none;
 	opacity: 0.4;
 }
 
 .cp-item--drag-over {
-	border-color: #3858e9;
-	box-shadow: 0 0 0 2px rgba(56, 88, 233, 0.2);
+	border-color: var(--cp-accent);
+	box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.2);
 }
 
-/* Drag handle ------------------------------------------------------------- */
+.cp-list > .cp-item:first-child.cp-item--drag-over {
+	border-color: rgba(255, 255, 255, 0.6);
+	box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+
+/* Drag handle ─────────────────────────────────────────────────────────────── */
 
 .cp-drag-handle {
-	color: #aaa;
+	color: var(--cp-text-muted);
 	cursor: grab;
 	flex-shrink: 0;
 	font-size: 18px;
 	line-height: 1;
+	opacity: 0.6;
 }
 
-/* Rank badge -------------------------------------------------------------- */
-
-.cp-rank {
-	align-items: center;
-	background: #f0f0f0;
-	border-radius: 50%;
-	color: #1e1e1e;
-	display: flex;
-	flex-shrink: 0;
-	font-size: 11px;
-	font-weight: 600;
-	height: 24px;
-	justify-content: center;
-	width: 24px;
-}
-
-.cp-item--drag-over .cp-rank {
-	background: #3858e9;
+.cp-list > .cp-item:first-child .cp-drag-handle {
 	color: #fff;
 }
 
-/* Logo -------------------------------------------------------------------- */
+/* Rank badge (design system §5.2) ─────────────────────────────────────────── */
+
+.cp-rank {
+	align-items: center;
+	background: var(--cp-canvas);
+	border: var(--cp-stroke) solid var(--cp-border);
+	border-radius: 50%;
+	color: var(--cp-text-muted);
+	display: flex;
+	flex-shrink: 0;
+	font-size: 12px;
+	font-weight: 700;
+	height: 22px;
+	justify-content: center;
+	width: 22px;
+}
+
+.cp-item--drag-over .cp-rank {
+	background: var(--cp-accent);
+	border-color: var(--cp-accent-dark);
+	color: #fff;
+}
+
+.cp-list > .cp-item:first-child .cp-rank {
+	background: rgba(255, 255, 255, 0.18);
+	border-color: rgba(255, 255, 255, 0.5);
+	color: #fff;
+}
+
+/* Logo ────────────────────────────────────────────────────────────────────── */
 
 .cp-logo {
-	border-radius: 4px;
+	border-radius: var(--cp-radius-2);
 	flex-shrink: 0;
 	object-fit: contain;
 }
 
 .cp-logo--placeholder {
-	background: #e0e0e0;
-	border-radius: 4px;
+	background: var(--cp-canvas);
+	border-radius: var(--cp-radius-2);
 	display: inline-block;
 	height: 32px;
 	width: 32px;
 }
 
-/* Info text --------------------------------------------------------------- */
+/* Info text ───────────────────────────────────────────────────────────────── */
 
 .cp-info {
 	flex: 1;
@@ -135,7 +215,7 @@
 }
 
 .cp-desc {
-	color: #6d6d6d;
+	color: var(--cp-text-muted);
 	display: block;
 	font-size: 12px;
 	overflow: hidden;
@@ -143,48 +223,52 @@
 	white-space: nowrap;
 }
 
-/* Status badge ------------------------------------------------------------ */
+.cp-list > .cp-item:first-child .cp-desc {
+	color: rgba(255, 255, 255, 0.78);
+}
+
+/* Status badge (design system §5.4) ───────────────────────────────────────── */
 
 .cp-badge {
 	border-radius: 100px;
 	flex-shrink: 0;
 	font-size: 11px;
 	font-weight: 500;
-	padding: 2px 8px;
+	padding: var(--cp-space-1) var(--cp-space-2);
 }
 
 .cp-badge--connected {
-	background: #c5f7cc;
-	color: #002900;
+	background: rgba(0, 163, 42, 0.12);
+	color: var(--cp-green);
 }
 
 .cp-badge--inactive {
-	background: #f0f0f0;
-	color: #6d6d6d;
+	background: var(--cp-canvas);
+	color: var(--cp-text-muted);
 }
 
-/* Action bar -------------------------------------------------------------- */
+/* Action bar ──────────────────────────────────────────────────────────────── */
 
 .cp-actions {
 	align-items: center;
 	display: flex;
-	gap: 12px;
+	gap: var(--cp-space-3);
 }
 
 .cp-save-success {
-	color: #007f30;
+	color: var(--cp-green);
 	font-size: 13px;
 }
 
 .cp-save-error {
-	color: #cc1818;
+	color: var(--cp-red);
 	font-size: 13px;
 }
 
-/* Empty state ------------------------------------------------------------- */
+/* Empty state ─────────────────────────────────────────────────────────────── */
 
 .cp-empty {
-	color: #6d6d6d;
+	color: var(--cp-text-muted);
 	padding: 40px;
 	text-align: center;
 }

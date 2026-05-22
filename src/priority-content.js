@@ -112,7 +112,7 @@ function SortableItem( {
 			? h(
 					'span',
 					{ className: 'cp-badge cp-badge--connected' },
-					__( 'Connected', 'connector-priority' )
+					__( 'Active', 'connector-priority' )
 			  )
 			: h(
 					'span',

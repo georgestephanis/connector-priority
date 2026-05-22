@@ -17,6 +17,8 @@ change proposals.
 | `src/priority-content.css` | Source stylesheet for the priority UI. Copied verbatim to `build/`. |
 | `build/` | Compiled output committed to git. Ready to serve — no build step needed to use the plugin. |
 | `webpack.config.js` | Extends `@wordpress/scripts` defaults: compiles the nav script and copies the ES module + CSS unchanged. |
+| `assets/` | Plugin directory and README images: `icon.svg`, `icon-128x128.png`, `icon-256x256.png`, `banner.svg`, `banner-772x250.png`, `banner-1544x500.png`. |
+| `DESIGN_SYSTEM.md` | Visual design spec: color tokens, typography, spacing, component rules. Read this before touching any CSS or adding new UI. |
 | `CORE-CHANGES.md` | Proposed upstream WordPress core patches for full priority enforcement. |
 | `README.md` | User-facing documentation and development workflow. |
 | `readme.txt` | WordPress.org plugin directory readme. |

@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 772 250" width="772" height="250" role="img" aria-label="Connector Priority banner">
+  <title>Connector Priority — set the order LLM connectors are tried.</title>
+  <desc>Editorial title on the left; a stacked priority list on the right with the top entry highlighted.</desc>
+
+  
+  <rect width="772" height="250" fill="#ffffff"></rect>
+
+  
+  
+  <g font-family="-apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, &#39;Helvetica Neue&#39;, system-ui, sans-serif">
+    <text x="48" y="100" font-size="44" font-weight="700" letter-spacing="-0.88" fill="#1d2327">Connector</text>
+    <text x="48" y="146" font-size="44" font-weight="700" letter-spacing="-0.88" fill="#1d2327">Priority</text>
+    <text x="48" y="184" font-size="17" font-weight="400" fill="#50575e">Route LLM requests in the order you choose.</text>
+  </g>
+
+  
+  
+
+  
+  <g>
+    
+    <rect x="398" y="50" width="320" height="46" rx="6" fill="#16527f" opacity="0.18"></rect>
+    <rect x="398" y="48" width="320" height="46" rx="6" fill="#2271b1" stroke="#0a4b78" stroke-width="1"></rect>
+    
+    <g fill="rgba(255,255,255,0.7)">
+      <circle cx="414" cy="65" r="2"></circle>
+      <circle cx="414" cy="77" r="2"></circle>
+      <circle cx="420" cy="65" r="2"></circle>
+      <circle cx="420" cy="77" r="2"></circle>
+    </g>
+    
+    <circle cx="442" cy="71" r="11" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.5)" stroke-width="1"></circle>
+    <text x="442" y="75.5" font-size="12" font-weight="700" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, system-ui, sans-serif" fill="#ffffff">1</text>
+    
+    <text x="464" y="67" font-size="15" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, system-ui, sans-serif" fill="#ffffff">Claude</text>
+    <text x="464" y="84" font-size="12" font-weight="400" font-family="-apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, system-ui, sans-serif" fill="rgba(255,255,255,0.78)">anthropic</text>
+  </g>
+
+  
+  <g>
+    <rect x="404" y="102" width="320" height="46" rx="6" fill="#ffffff" stroke="#dcdcde" stroke-width="1"></rect>
+    <g fill="#50575e">
+      <circle cx="420" cy="119" r="2"></circle>
+      <circle cx="420" cy="131" r="2"></circle>
+      <circle cx="426" cy="119" r="2"></circle>
+      <circle cx="426" cy="131" r="2"></circle>
+    </g>
+    <circle cx="448" cy="125" r="11" fill="#f0f0f1" stroke="#c3c4c7" stroke-width="1"></circle>
+    <text x="448" y="129.5" font-size="12" font-weight="700" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, system-ui, sans-serif" fill="#50575e">2</text>
+    <text x="470" y="121" font-size="15" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, system-ui, sans-serif" fill="#1d2327">GPT-4o</text>
+    <text x="470" y="138" font-size="12" font-weight="400" font-family="-apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, system-ui, sans-serif" fill="#50575e">openai</text>
+  </g>
+
+  
+  <g>
+    <rect x="404" y="156" width="320" height="46" rx="6" fill="#ffffff" stroke="#dcdcde" stroke-width="1"></rect>
+    <g fill="#50575e">
+      <circle cx="420" cy="173" r="2"></circle>
+      <circle cx="420" cy="185" r="2"></circle>
+      <circle cx="426" cy="173" r="2"></circle>
+      <circle cx="426" cy="185" r="2"></circle>
+    </g>
+    <circle cx="448" cy="179" r="11" fill="#f0f0f1" stroke="#c3c4c7" stroke-width="1"></circle>
+    <text x="448" y="183.5" font-size="12" font-weight="700" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, system-ui, sans-serif" fill="#50575e">3</text>
+    <text x="470" y="175" font-size="15" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, system-ui, sans-serif" fill="#1d2327">Llama 3.1</text>
+    <text x="470" y="192" font-size="12" font-weight="400" font-family="-apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, system-ui, sans-serif" fill="#50575e">self-hosted</text>
+  </g>
+</svg>
