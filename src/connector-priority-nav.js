@@ -2,8 +2,9 @@
  * connector-priority-nav.js
  *
  * Injected on the Settings > Connectors page (options-connectors screen).
- * Uses MutationObserver to wait for the React SPA to render the connector list,
- * then inserts a "Set AI Priority Order" link at the top of .connectors-page.
+ * Uses MutationObserver to wait for the Boot module SPA to render the
+ * .admin-ui-page__header-actions slot, then inserts a "Set AI Priority Order"
+ * button there — inline with the "Connectors" page title on the right side.
  *
  * The link targets the /priority route inside the same SPA by setting the
  * `p` search-parameter that the Boot module's createPathHistory() reads.
@@ -23,36 +24,44 @@
 	}
 
 	/**
-	 * Inject the link into the top of the connectors page element.
-	 * Idempotent — skips if already present.
-	 *
-	 * @param {Element} connectorsPage
+	 * Returns true when the current SPA route is already /priority.
 	 */
-	function injectLink( connectorsPage ) {
-		if ( connectorsPage.querySelector( '.cp-priority-nav-link' ) ) {
+	function isOnPriorityRoute() {
+		const p = new URLSearchParams( window.location.search ).get( 'p' );
+		return p === '/priority';
+	}
+
+	/**
+	 * Inject the link into .admin-ui-page__header-actions (right side of the
+	 * page title bar). Idempotent — skips if already present.
+	 *
+	 * @param {Element} actions
+	 */
+	function injectLink( actions ) {
+		if ( actions.querySelector( '.cp-priority-nav-link' ) ) {
 			return;
 		}
-
-		const wrapper = document.createElement( 'div' );
-		wrapper.style.cssText = 'margin-bottom:16px';
 
 		const link = document.createElement( 'a' );
 		link.href = priorityUrl();
 		link.className = 'cp-priority-nav-link button';
 		link.textContent = 'Set AI Priority Order';
 
-		wrapper.appendChild( link );
-		connectorsPage.insertBefore( wrapper, connectorsPage.firstChild );
+		actions.appendChild( link );
 	}
 
 	function tryInject() {
-		const page = document.querySelector( '.connectors-page' );
-		if ( page ) {
-			injectLink( page );
+		if ( isOnPriorityRoute() ) {
+			return;
+		}
+		const actions = document.querySelector( '.admin-ui-page__header-actions' );
+		if ( actions ) {
+			injectLink( actions );
 		}
 	}
 
-	// Watch for the React app to render .connectors-page into the DOM.
+	// Watch for the Boot module to render .admin-ui-page__header-actions and for
+	// subsequent SPA navigations that swap the stage content.
 	const observer = new MutationObserver( tryInject );
 	observer.observe( document.body, { childList: true, subtree: true } );
 

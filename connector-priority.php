@@ -102,11 +102,19 @@ function wp_get_preferred_ai_connector(): ?string {
 // ---------------------------------------------------------------------------
 
 /**
- * Adds `connectorPriorityOrder` to the data already supplied to the
- * options-connectors-wp-admin script module so the existing JS can read it.
+ * Adds `connectorPriorityOrder` to the data supplied to the connectors script
+ * module for both the wp-admin integrated version and the standalone version.
  */
 add_filter(
 	'script_module_data_options-connectors-wp-admin',
+	static function ( array $data ): array {
+		$data['connectorPriorityOrder'] = wp_get_connector_priority_order();
+		return $data;
+	}
+);
+
+add_filter(
+	'script_module_data_options-connectors',
 	static function ( array $data ): array {
 		$data['connectorPriorityOrder'] = wp_get_connector_priority_order();
 		return $data;
@@ -154,50 +162,53 @@ add_filter(
 // 4. Register the /priority route in the connectors SPA
 // ---------------------------------------------------------------------------
 
+/**
+ * Shared setup: registers the script module and enqueues CSS + nav script.
+ * Called from both init actions so the correct route registrar can be passed.
+ *
+ * @param callable $register_route wp_register_options_connectors_route or
+ *                                 wp_register_options_connectors_wp_admin_route.
+ */
+function _connector_priority_init( callable $register_route ): void {
+	wp_register_script_module(
+		'connector-priority',
+		plugin_dir_url( __FILE__ ) . 'build/priority-content.js',
+		array(),
+		'1.0.0'
+	);
+
+	call_user_func( $register_route, '/priority', 'connector-priority', null );
+
+	wp_enqueue_style(
+		'connector-priority',
+		plugin_dir_url( __FILE__ ) . 'build/priority-content.css',
+		array(),
+		'1.0.0'
+	);
+
+	wp_enqueue_script(
+		'connector-priority-nav',
+		plugin_dir_url( __FILE__ ) . 'build/connector-priority-nav.js',
+		array(),
+		'1.0.0',
+		array( 'in_footer' => true )
+	);
+}
+
+// Gutenberg active: wp-admin integrated page (?page=options-connectors-wp-admin).
 add_action(
 	'options-connectors-wp-admin_init',
 	static function () {
-		wp_register_script_module(
-			'connector-priority',
-			plugin_dir_url( __FILE__ ) . 'build/priority-content.js',
-			array(),
-			'1.0.0'
-		);
-
-		wp_register_options_connectors_wp_admin_route(
-			'/priority',
-			'connector-priority',
-			null
-		);
+		_connector_priority_init( 'wp_register_options_connectors_wp_admin_route' );
 	}
 );
 
-// ---------------------------------------------------------------------------
-// 5. Inject the "Set Priority Order" navigation link on the connectors page
-// ---------------------------------------------------------------------------
-
+// Gutenberg inactive: standalone page (?page=options-connectors).
+// admin_enqueue_scripts never fires here — everything must be enqueued inside
+// this action, which runs before the HTML is output.
 add_action(
-	'admin_enqueue_scripts',
+	'options-connectors_init',
 	static function () {
-		$screen = get_current_screen();
-		if ( ! $screen || 'options-connectors' !== $screen->id ) {
-			return;
-		}
-
-		wp_enqueue_style(
-			'connector-priority',
-			plugin_dir_url( __FILE__ ) . 'build/priority-content.css',
-			array(),
-			'1.0.0'
-		);
-
-		wp_enqueue_script(
-			'connector-priority-nav',
-			plugin_dir_url( __FILE__ ) . 'build/connector-priority-nav.js',
-			array(),
-			'1.0.0',
-			array( 'in_footer' => true )
-		);
-	},
-	20
+		_connector_priority_init( 'wp_register_options_connectors_route' );
+	}
 );

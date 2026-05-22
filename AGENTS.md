@@ -13,7 +13,7 @@ change proposals.
 |------|------|
 | `connector-priority.php` | Main plugin file. PHP hooks, public API, route registration. Serves assets from `build/`. |
 | `src/priority-content.js` | Source ES module. Exports `stage` — the React drag-and-drop component rendered at the `/priority` SPA route. Copied verbatim to `build/` to preserve the native ES module format. |
-| `src/connector-priority-nav.js` | Source IIFE script. Uses `MutationObserver` to inject a "Set AI Priority Order" link. Compiled and minified by webpack into `build/`. |
+| `src/connector-priority-nav.js` | Source IIFE script. Uses `MutationObserver` to inject a "Set AI Priority Order" button into `.admin-ui-page__header-actions`, placing it inline with the page title on the right side. Compiled and minified by webpack into `build/`. |
 | `src/priority-content.css` | Source stylesheet for the priority UI. Copied verbatim to `build/`. |
 | `build/` | Compiled output committed to git. Ready to serve — no build step needed to use the plugin. |
 | `webpack.config.js` | Extends `@wordpress/scripts` defaults: compiles the nav script and copies the ES module + CSS unchanged. |
@@ -66,17 +66,56 @@ script_module_data_options-connectors-wp-admin  ← adds connectorPriorityOrder
 
 ## How routing works
 
-The connectors SPA (options-connectors.php) uses the Boot module's
-`createPathHistory()`, which reads the current route from the `p` URL search
-parameter (e.g. `?p=/priority`). This plugin registers the `/priority` route via
-`wp_register_options_connectors_wp_admin_route()` and the `connector-priority`
-script module as its content module. The content module exports `stage`
-(a React component), which the Boot system renders inside `.boot-layout__stage`.
+The connectors SPA uses the Boot module's `createPathHistory()`, which reads the
+current route from the `p` URL search parameter (e.g. `?p=/priority`). There are
+three entry points across two code paths:
+
+### Entry points
+
+| Who registers it | URL | How detected | Init action fired |
+|------------------|-----|--------------|-------------------|
+| **WordPress core** | `/wp-admin/options-connectors.php` | `$screen->id === 'options-connectors'` (set by `admin.php` bootstrap) | `options-connectors-wp-admin_init` |
+| **Gutenberg plugin** | `/wp-admin/admin.php?page=options-connectors-wp-admin` | `$_GET['page'] === 'options-connectors-wp-admin'` | `options-connectors-wp-admin_init` |
+| **Standalone renderer** | `/wp-admin/admin.php?page=options-connectors` | intercepted at `admin_init` by `page.php` | `options-connectors_init` |
+
+**WordPress core** ships `wp-admin/options-connectors.php` — a classic wp-admin
+file that loads `admin.php` (so the full admin chrome is present), then calls
+`wp_options_connectors_wp_admin_render_page()`. This is what users see when
+Gutenberg is **not** active.
+
+**Gutenberg plugin** registers a separate admin menu page at the slug
+`options-connectors-wp-admin`, which also calls
+`wp_options_connectors_wp_admin_render_page()`. Because it uses a different slug,
+the URL changes to `admin.php?page=options-connectors-wp-admin`. Both the core
+file and the Gutenberg menu page render identically and fire the same
+`options-connectors-wp-admin_init` action — they are the same code path,
+different entry point.
+
+**Standalone renderer** (`page.php`) intercepts `admin_init` for
+`?page=options-connectors` and calls `wp_options_connectors_render_page()`, which
+outputs a full standalone HTML page (no wp-admin chrome) and fires
+`options-connectors_init`. `admin_enqueue_scripts` never fires here — all assets
+for this path must be enqueued inside `options-connectors_init`.
+
+### Route registrars
+
+| Init action | Route registrar function |
+|-------------|--------------------------|
+| `options-connectors-wp-admin_init` | `wp_register_options_connectors_wp_admin_route()` |
+| `options-connectors_init` | `wp_register_options_connectors_route()` |
+
+The shared helper `_connector_priority_init( callable $register_route )` in
+`connector-priority.php` handles script module registration, route registration,
+and asset enqueueing for both paths. Each init action calls it with the
+appropriate registrar.
+
+All three entry points mount the Boot module and render content inside
+`.boot-layout__stage`.
 
 ## Testing checklist
 
 - [ ] Activate plugin; visit Settings > Connectors — "Set AI Priority Order"
-      button appears at top of connector list.
+      button appears inline with the "Connectors" page title on the right.
 - [ ] Click button; page navigates to `?p=/priority` and shows the priority UI.
 - [ ] All registered AI providers appear in the list with name, logo (if any),
       and Connected/Not connected badge.
@@ -94,6 +133,7 @@ auto-discovering models — that requires the core changes described in
 [CORE-CHANGES.md](CORE-CHANGES.md). Until those land, callers must use
 `wp_get_preferred_ai_connector()` explicitly.
 
-The "Set AI Priority Order" navigation link is injected via `MutationObserver`
-rather than a proper JS SlotFill because the connectors SPA does not currently
-expose `applyFilters()` hook points in its React tree (see CORE-CHANGES.md §5).
+The "Set AI Priority Order" button is injected into `.admin-ui-page__header-actions`
+via `MutationObserver` rather than a proper JS SlotFill because the connectors SPA
+does not currently expose `applyFilters()` hook points in its React tree (see
+CORE-CHANGES.md §5).
