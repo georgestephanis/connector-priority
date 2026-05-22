@@ -189,12 +189,11 @@ function _connector_priority_init( callable $register_route ): void {
 		'1.0.0'
 	);
 
-	wp_enqueue_script(
+	wp_enqueue_script_module(
 		'connector-priority-nav',
 		plugin_dir_url( __FILE__ ) . 'build/connector-priority-nav.js',
 		array(),
-		'1.0.0',
-		array( 'in_footer' => true )
+		'1.0.0'
 	);
 }
 
