@@ -43,54 +43,34 @@ and make the icon look mushy on tinted backgrounds.
 
 ## 2 · Color tokens
 
-All colors are sourced from WordPress core admin. Declare them as CSS
-custom properties at `:root`, then never touch a hex value below this
-point in any plugin stylesheet.
+All colors are sourced from WordPress core admin. Use WP core CSS variables
+directly at point of use — there is no plugin-level token layer.
 
-```css
-:root {
-  /* Brand */
-  --cp-accent:        #2271b1;  /* alias of --wp-admin-theme-color */
-  --cp-accent-hover:  #135e96;
-  --cp-accent-dark:   #0a4b78;
+**Accent (use `--wp-admin-theme-color*` — these automatically follow the
+active admin color scheme):**
 
-  /* Text */
-  --cp-text:          #1d2327;  /* primary copy */
-  --cp-text-2:        #2c3338;  /* headings on white */
-  --cp-text-muted:    #50575e;  /* secondary / sub */
+| Purpose       | Property to use                              | Default fallback |
+|---------------|----------------------------------------------|-----------------|
+| Accent        | `var(--wp-admin-theme-color, #2271b1)`        | `#2271b1`       |
+| Accent hover  | `var(--wp-admin-theme-color-darker-10, #135e96)` | `#135e96`    |
+| Accent dark   | `var(--wp-admin-theme-color-darker-20, #0a4b78)` | `#0a4b78`    |
 
-  /* Surface */
-  --cp-surface:       #ffffff;  /* cards, rows */
-  --cp-canvas:        #f0f0f1;  /* admin page bg */
-  --cp-soft:          #f6f7f7;  /* alt-row, inset panels */
+**All other values — no WP core CSS variable exists; use the raw hex
+constant (these match WP admin's compiled Sass):**
 
-  /* Border */
-  --cp-border:        #c3c4c7;  /* inputs, dividers */
-  --cp-border-soft:   #dcdcde;  /* inner separators */
-
-  /* Status (use sparingly — never to convey priority) */
-  --cp-green:         #00a32a;  /* active right now */
-  --cp-orange:        #dba617;  /* rate-limited / degraded */
-  --cp-red:           #d63638;  /* offline / errored */
-}
-```
-
-### Accent alternates
-
-If a user has switched to a non-default admin color scheme, mirror it.
-These are the six WordPress core scheme accents:
-
-| Scheme       | Hex       |
-|--------------|-----------|
-| Default      | `#2271b1` |
-| Modern       | `#1d35b4` |
-| Coffee       | `#523f6d` |
-| Ectoplasm    | `#41a62a` |
-| Sunrise      | `#dd823b` |
-| Olive        | `#a7b656` |
-
-Read `wp_get_current_user()->user_options['admin_color']` and set
-`--cp-accent` accordingly.
+| Purpose            | Value      |
+|--------------------|------------|
+| Primary text       | `#1d2327`  |
+| Heading text       | `#2c3338`  |
+| Muted / secondary  | `#50575e`  |
+| Card / row surface | `#fff`     |
+| Page canvas        | `#f0f0f1`  |
+| Alt-row / inset    | `#f6f7f7`  |
+| Input border       | `#c3c4c7`  |
+| Inner separator    | `#dcdcde`  |
+| Active             | `#00a32a`  |
+| Rate-limited       | `#dba617`  |
+| Offline / error    | `#d63638`  |
 
 ---
 
@@ -137,7 +117,7 @@ Use the WordPress admin system stack — never load a webfont.
 | `--cp-stroke-2` | 1.5px | Icon strokes only |
 
 **Focus ring.** Match WP-core exactly:
-`box-shadow: 0 0 0 1px var(--cp-surface), 0 0 0 3px var(--cp-accent);`
+`box-shadow: 0 0 0 1px #fff, 0 0 0 3px var(--wp-admin-theme-color, #2271b1);`
 Never substitute a different ring style.
 
 ---
@@ -256,8 +236,8 @@ If you're adding new UI:
 
 - **Start in `icon.svg` / `banner.svg`** if the change is to the brand
   mark. Don't fork a new asset.
-- **Add tokens to §2 / §4 before using them in code.** Tokens that
-  aren't in this doc don't exist.
+- **No plugin token layer.** Use `--wp-admin-theme-color*` for accent,
+  raw hex for everything else. Values are in §2 / §4.
 - **Use the connector row pattern (§5.1) for any sortable list.** Don't
   invent a second list visual.
 - **Stay within the WordPress admin's information density.** If a new
