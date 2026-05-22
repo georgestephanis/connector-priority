@@ -2,6 +2,8 @@
 
 ![Connector Priority](assets/banner-772x250.png)
 
+[![Try in WordPress Playground](https://img.shields.io/badge/Try%20in-WordPress%20Playground-3858e9?logo=wordpress&logoColor=white)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/georgestephanis/connector-priority/trunk/.github/blueprint.json)
+
 A WordPress plugin that adds drag-and-drop priority ordering for AI connectors on the **Settings > Connectors** screen introduced in WordPress 7.0.
 
 ## What it does
