@@ -204,3 +204,80 @@
 	padding: 40px;
 	text-align: center;
 }
+
+/* Rank-change flash animations ────────────────────────────────────────────── */
+/* Applied for ~600 ms when a drag swaps the first-rank item. */
+
+/* Promoted item: was white, is now blue (:first-child).
+   Animate children that have explicit colors; parent color covers cp-name. */
+.cp-item--promote {
+	animation: cp-promote-bg 0.5s ease;
+}
+.cp-item--promote .cp-drag-handle {
+	animation: cp-promote-fgdark 0.5s ease;
+}
+.cp-item--promote .cp-rank {
+	animation: cp-promote-rank 0.5s ease;
+}
+.cp-item--promote .cp-desc {
+	animation: cp-promote-fgdark 0.5s ease;
+}
+
+/* Demoted item: was blue (:first-child), is now white.
+   Mirror of promote — animate from the blue values to normal. */
+.cp-item--demote {
+	animation: cp-demote-bg 0.5s ease;
+}
+.cp-item--demote .cp-drag-handle {
+	animation: cp-demote-fglight 0.5s ease;
+}
+.cp-item--demote .cp-rank {
+	animation: cp-demote-rank 0.5s ease;
+}
+.cp-item--demote .cp-desc {
+	animation: cp-demote-fglight 0.5s ease;
+}
+
+/* Keyframes — only `from` specified; `to` is the live cascade value. */
+
+@keyframes cp-promote-bg {
+	from {
+		background: #fff;
+		border-color: #dcdcde;
+		box-shadow: none;
+		color: #1d2327;
+	}
+}
+
+@keyframes cp-promote-fgdark {
+	from { color: #50575e; }
+}
+
+@keyframes cp-promote-rank {
+	from {
+		background: #f0f0f1;
+		border-color: #c3c4c7;
+		color: #50575e;
+	}
+}
+
+@keyframes cp-demote-bg {
+	from {
+		background: var(--wp-admin-theme-color, #2271b1);
+		border-color: var(--wp-admin-theme-color-darker-20, #0a4b78);
+		box-shadow: 0 6px 18px rgba(var(--wp-admin-theme-color--rgb), 0.22);
+		color: #fff;
+	}
+}
+
+@keyframes cp-demote-fglight {
+	from { color: #fff; }
+}
+
+@keyframes cp-demote-rank {
+	from {
+		background: rgba(255, 255, 255, 0.18);
+		border-color: rgba(255, 255, 255, 0.5);
+		color: #fff;
+	}
+}

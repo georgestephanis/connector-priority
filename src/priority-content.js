@@ -51,7 +51,7 @@ function getModuleData() {
 // ---------------------------------------------------------------------------
 // SortableItem component
 // ---------------------------------------------------------------------------
-function SortableItem( { item, index } ) {
+function SortableItem( { item, index, flashClass } ) {
 	const {
 		attributes,
 		listeners,
@@ -67,12 +67,14 @@ function SortableItem( { item, index } ) {
 		opacity: isDragging ? 0.4 : undefined,
 	};
 
+	const className = flashClass ? `cp-item ${ flashClass }` : 'cp-item';
+
 	return h(
 		'li',
 		{
 			ref: setNodeRef,
 			style,
-			className: 'cp-item',
+			className,
 			...attributes,
 		},
 		h(
@@ -130,6 +132,7 @@ function PriorityPage() {
 
 	const [ order, setOrder ] = useState( initialOrder );
 	const [ saveState, setSaveState ] = useState( 'idle' ); // 'idle'|'saving'|'saved'|'error'
+	const [ flash, setFlash ] = useState( null ); // { promote: id, demote: id } | null
 
 	const sensors = useSensors(
 		useSensor( PointerSensor ),
@@ -144,14 +147,17 @@ function PriorityPage() {
 	backUrl.searchParams.set( 'p', '/' );
 
 	const handleDragEnd = useCallback( ( { active, over } ) => {
-		if ( over && active.id !== over.id ) {
-			setOrder( ( prev ) => {
-				const oldIndex = prev.indexOf( active.id );
-				const newIndex = prev.indexOf( over.id );
-				return arrayMove( prev, oldIndex, newIndex );
-			} );
+		if ( ! over || active.id === over.id ) {
+			return;
 		}
-	}, [] );
+		const oldIndex = order.indexOf( active.id );
+		const newIndex = order.indexOf( over.id );
+		const newOrder = arrayMove( order, oldIndex, newIndex );
+		setOrder( newOrder );
+		if ( order[ 0 ] !== newOrder[ 0 ] ) {
+			setFlash( { promote: newOrder[ 0 ], demote: order[ 0 ] } );
+		}
+	}, [ order ] );
 
 	const handleSave = useCallback( async () => {
 		setSaveState( 'saving' );
@@ -176,6 +182,14 @@ function PriorityPage() {
 		const t = setTimeout( () => setSaveState( 'idle' ), 3000 );
 		return () => clearTimeout( t );
 	}, [ saveState ] );
+
+	useEffect( () => {
+		if ( ! flash ) {
+			return;
+		}
+		const t = setTimeout( () => setFlash( null ), 600 );
+		return () => clearTimeout( t );
+	}, [ flash ] );
 
 	if ( ! items.length ) {
 		return h(
@@ -248,6 +262,11 @@ function PriorityPage() {
 							key: item.id,
 							item,
 							index,
+							flashClass: flash?.promote === item.id
+								? 'cp-item--promote'
+								: flash?.demote === item.id
+								? 'cp-item--demote'
+								: null,
 						} )
 					)
 				)
