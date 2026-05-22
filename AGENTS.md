@@ -19,6 +19,7 @@ change proposals.
 | `webpack.config.js` | Extends `@wordpress/scripts` defaults: compiles the nav script and copies the ES module + CSS unchanged. |
 | `assets/` | Plugin directory and README images: `icon.svg`, `icon-128x128.png`, `icon-256x256.png`, `banner.svg`, `banner-772x250.png`, `banner-1544x500.png`. |
 | `DESIGN_SYSTEM.md` | Visual design spec: color tokens, typography, spacing, component rules. Read this before touching any CSS or adding new UI. |
+| `GUTENBERG-COMPAT.md` | Diff between core and Gutenberg plugin implementations of the connectors page. Read before touching route registration or the init callbacks. Includes the versions it was written against so you can tell if it's stale. |
 | `CORE-CHANGES.md` | Proposed upstream WordPress core patches for full priority enforcement. |
 | `README.md` | User-facing documentation and development workflow. |
 | `readme.txt` | WordPress.org plugin directory readme. |
@@ -108,6 +109,13 @@ The shared helper `_connector_priority_init( callable $register_route )` in
 `connector-priority.php` handles script module registration, route registration,
 and asset enqueueing for both paths. Each init action calls it with the
 appropriate registrar.
+
+> **Gutenberg compatibility:** When the Gutenberg plugin is active it shadows
+> core's route registry under a `gutenberg_` prefix with a completely separate
+> global, so the `options-connectors-wp-admin_init` callback detects at runtime
+> which registration function exists and passes the correct one to
+> `_connector_priority_init`. See [GUTENBERG-COMPAT.md](GUTENBERG-COMPAT.md)
+> for the full diff between the two implementations.
 
 All three entry points mount the Boot module and render content inside
 `.boot-layout__stage`.

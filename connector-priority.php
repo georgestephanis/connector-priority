@@ -196,10 +196,15 @@ function _connector_priority_init( callable $register_route ): void {
 }
 
 // Gutenberg active: wp-admin integrated page (?page=options-connectors-wp-admin).
+// Gutenberg shadows core's route registry under a gutenberg_ prefix, so detect
+// which registration function is available rather than hardcoding the core one.
 add_action(
 	'options-connectors-wp-admin_init',
 	static function () {
-		_connector_priority_init( 'wp_register_options_connectors_wp_admin_route' );
+		$register = function_exists( 'gutenberg_register_options_connectors_wp_admin_route' )
+			? 'gutenberg_register_options_connectors_wp_admin_route'
+			: 'wp_register_options_connectors_wp_admin_route';
+		_connector_priority_init( $register );
 	}
 );
 
