@@ -7,16 +7,21 @@
 	"license": "GPL-2.0-or-later",
 	"private": true,
 	"scripts": {
-		"build":        "wp-scripts build",
+		"build": "wp-scripts build",
 		"build-plugin": "wp-scripts build-plugin",
-		"lint:js":      "wp-scripts lint-js 'src/**/*.js'",
-		"lint:css":     "wp-scripts lint-style 'src/**/*.css'",
-		"lint:php":     "composer run lint:php",
-		"format:js":    "wp-scripts format 'src/**/*.js'",
-		"format:css":   "wp-scripts format 'src/**/*.css'",
-		"format":       "npm run format:js && npm run format:css"
+		"lint:js": "wp-scripts lint-js 'src/**/*.js'",
+		"lint:css": "wp-scripts lint-style 'src/**/*.css'",
+		"lint:php": "composer run lint:php",
+		"format:js": "wp-scripts format 'src/**/*.js'",
+		"format:css": "wp-scripts format 'src/**/*.css'",
+		"format": "npm run format:js && npm run format:css"
 	},
 	"devDependencies": {
 		"@wordpress/scripts": "^32.2.0"
+	},
+	"dependencies": {
+		"@dnd-kit/core": "^6.3.1",
+		"@dnd-kit/sortable": "^10.0.0",
+		"@dnd-kit/utilities": "^3.2.2"
 	}
 }

@@ -70,7 +70,10 @@ add_action(
  */
 function wp_get_connector_priority_order(): array {
 	$saved      = (array) get_option( 'wp_connector_priority_order', array() );
-	$registered = array_keys( wp_get_connectors() );
+	$registered = array_keys( array_filter(
+		wp_get_connectors(),
+		static fn( array $info ): bool => 'ai_provider' === $info['type']
+	) );
 	$ordered    = array_values( array_intersect( $saved, $registered ) );
 	$remainder  = array_values( array_diff( $registered, $ordered ) );
 

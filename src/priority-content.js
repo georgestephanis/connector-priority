@@ -3,18 +3,25 @@
  *
  * Content module for the /priority route in the connectors SPA.
  * Registered via wp_register_options_connectors_wp_admin_route() in connector-priority.php.
- *
- * This is a plain ES module — no build step required.
- * React and wp globals are available as window.wp.* on admin pages.
- *
- * The Boot module system dynamically imports this file and calls:
- *   React.createElement( stage )
- * so `stage` must be a React function component.
  */
 
-// ---------------------------------------------------------------------------
-// Globals — available in the WordPress admin environment
-// ---------------------------------------------------------------------------
+import {
+	DndContext,
+	closestCenter,
+	PointerSensor,
+	KeyboardSensor,
+	useSensor,
+	useSensors,
+} from '@dnd-kit/core';
+import {
+	SortableContext,
+	sortableKeyboardCoordinates,
+	useSortable,
+	arrayMove,
+	verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
 const {
 	createElement: h,
 	useState,
@@ -44,41 +51,36 @@ function getModuleData() {
 // ---------------------------------------------------------------------------
 // SortableItem component
 // ---------------------------------------------------------------------------
-function SortableItem( {
-	item,
-	index,
-	isDragging,
-	isDragOver,
-	onDragStart,
-	onDragOver,
-	onDrop,
-	onDragEnd,
-} ) {
+function SortableItem( { item, index } ) {
+	const {
+		attributes,
+		listeners,
+		setNodeRef,
+		transform,
+		transition,
+		isDragging,
+	} = useSortable( { id: item.id } );
+
+	const style = {
+		transform: CSS.Transform.toString( transform ),
+		transition,
+		opacity: isDragging ? 0.4 : undefined,
+	};
+
 	return h(
 		'li',
 		{
-			className: [
-				'cp-item',
-				isDragging ? 'cp-item--dragging' : '',
-				isDragOver ? 'cp-item--drag-over' : '',
-			]
-				.filter( Boolean )
-				.join( ' ' ),
-			draggable: true,
-			onDragStart: () => onDragStart( index ),
-			onDragOver: ( e ) => {
-				e.preventDefault();
-				onDragOver( index );
-			},
-			onDrop: () => onDrop( index ),
-			onDragEnd,
+			ref: setNodeRef,
+			style,
+			className: 'cp-item',
+			...attributes,
 		},
 		h(
 			'span',
 			{
 				className: 'cp-drag-handle',
 				'aria-hidden': 'true',
-				title: __( 'Drag to reorder', 'connector-priority' ),
+				...listeners,
 			},
 			'⠇'
 		),
@@ -87,9 +89,7 @@ function SortableItem( {
 			{
 				className: 'cp-rank',
 				'aria-label':
-					__( 'Priority', 'connector-priority' ) +
-					' ' +
-					( index + 1 ),
+					__( 'Priority', 'connector-priority' ) + ' ' + ( index + 1 ),
 			},
 			index + 1
 		),
@@ -129,43 +129,28 @@ function PriorityPage() {
 	const { connectors, priorityOrder: initialOrder } = getModuleData();
 
 	const [ order, setOrder ] = useState( initialOrder );
-	const [ dragIndex, setDragIndex ] = useState( null );
-	const [ dragOver, setDragOver ] = useState( null );
 	const [ saveState, setSaveState ] = useState( 'idle' ); // 'idle'|'saving'|'saved'|'error'
 
-	// Build ordered item list from the connector map
+	const sensors = useSensors(
+		useSensor( PointerSensor ),
+		useSensor( KeyboardSensor, {
+			coordinateGetter: sortableKeyboardCoordinates,
+		} )
+	);
+
 	const items = order.map( ( id ) => connectors[ id ] ).filter( Boolean );
 
-	// Build the URL for the "back" link — sets the router path param to /
 	const backUrl = new URL( window.location.href );
 	backUrl.searchParams.set( 'p', '/' );
 
-	const handleDragStart = useCallback( ( index ) => {
-		setDragIndex( index );
-	}, [] );
-
-	const handleDragOver = useCallback( ( index ) => {
-		setDragOver( index );
-	}, [] );
-
-	const handleDrop = useCallback( ( toIndex ) => {
-		setDragIndex( ( fromIndex ) => {
-			if ( fromIndex !== null && fromIndex !== toIndex ) {
-				setOrder( ( prev ) => {
-					const next = [ ...prev ];
-					const [ moved ] = next.splice( fromIndex, 1 );
-					next.splice( toIndex, 0, moved );
-					return next;
-				} );
-			}
-			return null;
-		} );
-		setDragOver( null );
-	}, [] );
-
-	const handleDragEnd = useCallback( () => {
-		setDragIndex( null );
-		setDragOver( null );
+	const handleDragEnd = useCallback( ( { active, over } ) => {
+		if ( over && active.id !== over.id ) {
+			setOrder( ( prev ) => {
+				const oldIndex = prev.indexOf( active.id );
+				const newIndex = prev.indexOf( over.id );
+				return arrayMove( prev, oldIndex, newIndex );
+			} );
+		}
 	}, [] );
 
 	const handleSave = useCallback( async () => {
@@ -184,7 +169,6 @@ function PriorityPage() {
 		}
 	}, [ order ] );
 
-	// Auto-clear 'saved' feedback after 3 s
 	useEffect( () => {
 		if ( saveState !== 'saved' ) {
 			return;
@@ -240,27 +224,33 @@ function PriorityPage() {
 			)
 		),
 		h(
-			'ul',
+			DndContext,
 			{
-				className: 'cp-list',
-				role: 'list',
-				'aria-label': __(
-					'AI connector priority order',
-					'connector-priority'
-				),
+				sensors,
+				collisionDetection: closestCenter,
+				onDragEnd: handleDragEnd,
 			},
-			items.map( ( item, index ) =>
-				h( SortableItem, {
-					key: item.id,
-					item,
-					index,
-					isDragging: dragIndex === index,
-					isDragOver: dragOver === index,
-					onDragStart: handleDragStart,
-					onDragOver: handleDragOver,
-					onDrop: handleDrop,
-					onDragEnd: handleDragEnd,
-				} )
+			h(
+				SortableContext,
+				{ items: order, strategy: verticalListSortingStrategy },
+				h(
+					'ul',
+					{
+						className: 'cp-list',
+						role: 'list',
+						'aria-label': __(
+							'AI connector priority order',
+							'connector-priority'
+						),
+					},
+					items.map( ( item, index ) =>
+						h( SortableItem, {
+							key: item.id,
+							item,
+							index,
+						} )
+					)
+				)
 			)
 		),
 		h(
@@ -296,5 +286,4 @@ function PriorityPage() {
 	);
 }
 
-// Boot module expects a named export `stage` — the React component to render.
 export { PriorityPage as stage };
