@@ -143,7 +143,7 @@ import('@wordpress/boot').then(mod => mod.initSinglePage({ mountId, routes }));
 
 This is an internal detail; plugin code does not call `initSinglePage` directly.
 
-### 5. Route content CSS class names (JS DOM targeting)
+### 5. Route content CSS class names and DOM structure (JS targeting)
 
 Gutenberg overrides the `wp/routes/connectors-home/content` script module by
 calling `wp_deregister_script_module()` on it before registering its own
@@ -151,44 +151,57 @@ version.  This means **when Gutenberg is active, Gutenberg's content build is
 loaded on every entry point** — including the core direct-file entry point
 `/wp-admin/options-connectors.php`.
 
-Core's content build uses plain, stable global class names:
+Gutenberg's content build uses **CSS Modules**, which hashes every class name
+at compile time.  The classes observed in the DOM (verified 2026-05-22):
 
 ```
-.admin-ui-page__header-actions
-.admin-ui-page__header-title
-.admin-ui-page__header
+_956b6df0898efed0__page           (the page root)
+_0625b55e82a0d93d__header         (the sticky header bar, flex column)
+a43c44d5ae28b2e8__header-content  (flex row inside header, space-between)
+_19ce0419607e1896__stack          (generic Stack component class)
+_8113be94e7caf73c__header-title   (h1 wrapper)
 ```
 
-Gutenberg's content build uses **CSS Modules**, which hashes every class name at
-compile time:
+These hashes change with Gutenberg releases and cannot be hardcoded.
+
+**The header-actions element is absent from the DOM when there are no
+built-in actions.**  Gutenberg's `HStack` component does not render a DOM node
+when its `children` prop is `undefined`, so `admin-ui-page__header-actions` (or
+its hashed equivalent) simply does not exist on the connectors home page.
+Targeting it with any selector will always return `null`.
+
+**Actual DOM hierarchy around the page title:**
 
 ```
-b7cb5b9daf3a3b25__header-actions   (was: admin-ui-page__header-actions)
-_8113be94e7caf73c__header-title    (was: admin-ui-page__header-title)
-_0625b55e82a0d93d__header          (was: admin-ui-page__header)
+.boot-layout__stage                          ← Boot module, stable, unhashed
+└── ._956b6df0898efed0__page
+    └── ._0625b55e82a0d93d__header           (flex column)
+        └── .a43c44d5ae28b2e8__header-content (flex row, space-between)  ← inject here
+            └── ._19ce0419607e1896__stack     (title stack)
+                └── h1                        ← querySelector('h1') lands here
 ```
 
-These hashes change with Gutenberg releases, so they cannot be hardcoded.
-
-**Consequence:** Any JavaScript that targets DOM elements by their full class
-name (e.g. `querySelector('.admin-ui-page__header-actions')`) will find nothing
-when Gutenberg is active, even on the core entry point.  This includes
-`MutationObserver` callbacks that look for specific class names.
-
-**Safe selector pattern:** Because both builds share a consistent BEM suffix,
-use a CSS attribute substring selector scoped to `.boot-layout__stage` (which is
-provided by the Boot module and is not hashed in either build):
+**Safe injection pattern:** Navigate structurally from the `h1` rather than
+relying on class names.  The `h1` is always two levels below the header-content
+flex row.  Appending to that row with `margin-left: auto` places the element at
+the right end regardless of `justify-content`:
 
 ```js
-// Works for core (.admin-ui-page__header-actions)
-// and Gutenberg (b7cb5b9daf3a3b25__header-actions, or whatever the hash is).
 const stage = document.querySelector( '.boot-layout__stage' );
-const actions = stage && stage.querySelector( '[class*="__header-actions"]' );
+const h1    = stage && stage.querySelector( 'h1' );
+const row   = h1 && h1.parentElement && h1.parentElement.parentElement;
+if ( row && ! row.querySelector( '.my-button' ) ) {
+    const btn = document.createElement( 'a' );
+    btn.className    = 'my-button button';
+    btn.style.marginLeft = 'auto';
+    btn.textContent  = 'My Action';
+    row.appendChild( btn );
+}
 ```
 
-The same principle applies to any other `admin-ui-page__*` class you might want
-to target from JavaScript: always use `[class*="__suffix"]` scoped inside
-`.boot-layout__stage` rather than the full class name.
+`.boot-layout__stage` is provided by the Boot module itself (not by route
+content) and is unhashed in both core and Gutenberg builds — it is the correct
+stable anchor for all DOM traversal.
 
 ### 6. Preload fields
 
@@ -269,5 +282,6 @@ file path may change between releases and that function requires
 | `script_module_data_*` filters | Yes | Yes | Yes |
 | `admin_enqueue_scripts` fires | Yes | Yes | Yes |
 | `admin_init` intercept (standalone) | Yes | Yes | Yes |
-| Route content CSS class names | Global (`admin-ui-page__*`) | CSS Modules hashed | No — use `[class*="__suffix"]` |
-| `.boot-layout__stage` class (boot module) | Global | Global | Yes |
+| Route content CSS class names | Global (`admin-ui-page__*`) | CSS Modules hashed | No — navigate from `h1` structurally |
+| Header-actions DOM element | Always rendered | Absent when no built-in actions | No — do not target it |
+| `.boot-layout__stage` class (boot module) | Global | Global | Yes — use as DOM anchor |

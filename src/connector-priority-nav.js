@@ -2,17 +2,18 @@
  * connector-priority-nav.js
  *
  * Injected on the Settings > Connectors page (options-connectors screen).
- * Uses MutationObserver to wait for the Boot module SPA to render the
- * page header's action slot, then inserts a "Set AI Priority Order" button
- * there — inline with the "Connectors" page title on the right side.
+ * Uses MutationObserver to wait for the Boot module SPA to render the page
+ * header, then inserts a "Set AI Priority Order" button inline with the
+ * "Connectors" title on the right side.
  *
  * The link targets the /priority route inside the same SPA by setting the
  * `p` search-parameter that the Boot module's createPathHistory() reads.
  *
- * Selector note: WordPress core uses the global class `admin-ui-page__header-actions`
- * while the Gutenberg plugin compiles the same component with CSS Modules, producing
- * a hashed class like `b7cb5b9daf3a3b25__header-actions`. Both share the substring
- * `__header-actions`, so `[class*="__header-actions"]` matches either version.
+ * DOM targeting note: The page header-actions slot is omitted from the DOM
+ * when no built-in actions are registered (Gutenberg's HStack skips rendering
+ * when children is undefined). The reliable hook is the flex row that wraps
+ * the title — two levels above the h1 (h1 → title-stack → header-content).
+ * header-content is a flex row; margin-left: auto on our button pins it right.
  */
 /* global MutationObserver */
 ( function () {
@@ -37,41 +38,58 @@
 	}
 
 	/**
-	 * Inject the link into the page header's action slot. Idempotent.
-	 *
-	 * @param {Element} actions
+	 * Remove ?p=/ from the URL when the SPA has navigated back to the root
+	 * route. The Boot module always sets p=/ for root; strip it so the address
+	 * bar stays clean. Called on every observer tick so it catches both
+	 * programmatic navigation and browser back/forward.
 	 */
-	function injectLink( actions ) {
-		if ( actions.querySelector( '.cp-priority-nav-link' ) ) {
+	function cleanRootParam() {
+		const url = new URL( window.location.href );
+		if ( url.searchParams.get( 'p' ) === '/' ) {
+			url.searchParams.delete( 'p' );
+			history.replaceState( history.state, '', url.toString() );
+		}
+	}
+
+	/**
+	 * Inject the link into the header-content flex row. Idempotent.
+	 *
+	 * @param {Element} headerContent
+	 */
+	function injectLink( headerContent ) {
+		if ( headerContent.querySelector( '.cp-priority-nav-link' ) ) {
 			return;
 		}
 
 		const link = document.createElement( 'a' );
 		link.href = priorityUrl();
 		link.className = 'cp-priority-nav-link button';
+		link.style.marginLeft = 'auto';
 		link.textContent = 'Set AI Priority Order';
 
-		actions.appendChild( link );
+		headerContent.appendChild( link );
 	}
 
 	function tryInject() {
 		if ( isOnPriorityRoute() ) {
 			return;
 		}
-		// .boot-layout__stage is a stable class from the Boot module (both core and
-		// Gutenberg versions). Search within it to avoid matching stale or off-screen
-		// elements from prior navigations.
+
 		const stage = document.querySelector( '.boot-layout__stage' );
 		if ( ! stage ) {
 			return;
 		}
-		// Core renders .admin-ui-page__header-actions; Gutenberg compiles the same
-		// component with CSS Modules, giving a hash-prefixed class that still ends in
-		// __header-actions. The substring selector matches both without version checks.
-		const actions = stage.querySelector( '[class*="__header-actions"]' );
-		if ( actions ) {
-			injectLink( actions );
+
+		// Find the h1 page title, then walk up to the flex row that contains it.
+		// Structure (both core and Gutenberg): h1 → title-stack → header-content.
+		// header-content is a flex row; appending with margin-left:auto places
+		// our button at the right end regardless of justify-content value.
+		const h1 = stage.querySelector( 'h1' );
+		if ( ! h1 || ! h1.parentElement || ! h1.parentElement.parentElement ) {
+			return;
 		}
+
+		injectLink( h1.parentElement.parentElement );
 	}
 
 	// Watch for the Boot module to render the stage and for subsequent SPA
