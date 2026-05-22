@@ -63,7 +63,16 @@ wp_get_preferred_ai_connector()            ← PHP API for other plugins
   ↓
 script_module_data_connector-priority      ← populates JSON tag read by JS
 script_module_data_options-connectors-wp-admin  ← adds connectorPriorityOrder
+  ↓
+wpai_preferred_text_models   \
+wpai_preferred_image_models   ├── ai plugin filters (partial workaround)
+wpai_preferred_vision_models /    reorders [provider,model] pairs by priority
 ```
+
+The three `wpai_preferred_*` filters affect all `ai` plugin features that route
+through `Abstract_Ability::set_provider_model_preference()`.  They do **not**
+affect code that calls `wp_ai_client_prompt()` directly — that requires the core
+changes described in [CORE-CHANGES.md](CORE-CHANGES.md) §1–2.
 
 ## How routing works
 
@@ -138,10 +147,14 @@ All three entry points mount the Boot module and render content inside
 
 ## Known limitations
 
-The saved priority order is not yet automatically honoured by the AI client when
-auto-discovering models — that requires the core changes described in
-[CORE-CHANGES.md](CORE-CHANGES.md). Until those land, callers must use
-`wp_get_preferred_ai_connector()` explicitly.
+The saved priority order is **partially** honoured at runtime:
+
+- **`ai` plugin features** (anything using `Abstract_Ability::set_provider_model_preference()`):
+  priority is applied today via the `wpai_preferred_text_models`,
+  `wpai_preferred_image_models`, and `wpai_preferred_vision_models` filters.
+- **Direct `wp_ai_client_prompt()` callers**: priority is NOT applied — that requires
+  the core changes in [CORE-CHANGES.md](CORE-CHANGES.md) §1–2.  Until those land,
+  callers must use `wp_get_preferred_ai_connector()` explicitly.
 
 The "Set AI Priority Order" button is injected via `MutationObserver` by walking
 `h1 → parentElement → parentElement` inside `.boot-layout__stage` rather than

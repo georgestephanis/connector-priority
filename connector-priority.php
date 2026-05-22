@@ -217,3 +217,46 @@ add_action(
 		_connector_priority_init( 'wp_register_options_connectors_route' );
 	}
 );
+
+// ---------------------------------------------------------------------------
+// 5. Integrate with the ai plugin's per-capability model preferences
+// ---------------------------------------------------------------------------
+
+/**
+ * Reorders model preference arrays from the ai plugin so models belonging
+ * to higher-priority connectors are tried first.
+ *
+ * Each entry is a [provider_id, model_slug] pair. All pairs are preserved;
+ * only their order changes — pairs whose provider appears earlier in the
+ * saved priority list come first.  Providers not in the list stay at the end
+ * in their original relative order (stable sort via position tracking).
+ *
+ * Applies to: wpai_preferred_text_models, wpai_preferred_image_models,
+ *             wpai_preferred_vision_models  (from the bundled ai plugin).
+ *
+ * This is a partial workaround until a core-level filter exists; see
+ * CORE-CHANGES.md §2 for the upstream proposal.
+ *
+ * @param array<int, array{string, string}> $models Provider+model pairs.
+ * @return array<int, array{string, string}> Re-sorted pairs.
+ */
+function _connector_priority_sort_models( array $models ): array {
+	$priority = wp_get_connector_priority_order();
+	if ( empty( $priority ) ) {
+		return $models;
+	}
+	$rank = array_flip( $priority );
+	usort(
+		$models,
+		static function ( array $a, array $b ) use ( $rank ): int {
+			$ra = $rank[ $a[0] ] ?? PHP_INT_MAX;
+			$rb = $rank[ $b[0] ] ?? PHP_INT_MAX;
+			return $ra <=> $rb;
+		}
+	);
+	return $models;
+}
+
+add_filter( 'wpai_preferred_text_models',   '_connector_priority_sort_models' );
+add_filter( 'wpai_preferred_image_models',  '_connector_priority_sort_models' );
+add_filter( 'wpai_preferred_vision_models', '_connector_priority_sort_models' );

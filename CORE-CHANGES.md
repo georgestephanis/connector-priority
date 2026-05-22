@@ -80,6 +80,30 @@ This lets the `connector-priority` plugin wire itself up with a single hook:
 add_filter( 'wp_ai_provider_priority', 'wp_get_connector_priority_order' );
 ```
 
+**Prior art — `ai` plugin:** The bundled `ai` plugin (`wp-content/plugins/ai`) already
+implements a comparable pattern one level down, at the model-pair level rather than
+the provider level.  Three filters in `wp-content/plugins/ai/includes/helpers.php`
+let plugins reorder the `[provider_id, model_slug]` preference lists that are passed
+to `PromptBuilder::usingModelPreference()`:
+
+| Filter | Capability |
+|--------|------------|
+| `wpai_preferred_text_models` | Text generation |
+| `wpai_preferred_image_models` | Image generation |
+| `wpai_preferred_vision_models` | Vision (image input) |
+
+Each filter receives and must return `array<int, array{string, string}>` — an ordered
+list of `[provider_id, model_slug]` pairs.  `connector-priority` hooks all three today
+(see §5 in `connector-priority.php`) as a partial workaround: it re-sorts the pairs so
+those belonging to higher-priority connectors come first, without removing any entries.
+
+**Scope limitation:** These filters only apply to code that goes through the `ai`
+plugin's `get_preferred_models_for_text_generation()` / `get_preferred_image_models()` /
+`get_preferred_vision_models()` helpers — i.e., abilities that extend `Abstract_Ability`
+and call `set_provider_model_preference()`.  Any code that calls `wp_ai_client_prompt()`
+directly bypasses them entirely.  The `wp_ai_provider_priority` filter proposed above
+would close this gap by acting at the `PromptBuilder` layer.
+
 ---
 
 ## 3. Add `wp_ai_provider_priority` filter documentation to `connectors.php`
@@ -321,12 +345,17 @@ route never pollutes the URL.
 | Change | Impact | Complexity |
 |--------|--------|------------|
 | `ProviderRegistry::findModelsMetadataForSupport()` accepts priority | AI client respects order | Low |
-| `PromptBuilder` applies `wp_ai_provider_priority` filter | Plugin can set preference | Low |
+| `PromptBuilder` applies `wp_ai_provider_priority` filter | Plugin can set preference for all callers | Low |
 | `_wp_connectors_get_connector_script_module_data()` sorts by priority | Connectors UI respects order | Low |
 | `applyFilters` hooks in `stage.tsx` | Plugins can inject UI cleanly | Medium |
 | `WP_Connector_Registry::reorder()` | Full chain priority in one hook | Low-Medium |
 | Always render `header-actions` with stable global class | Plugins can inject without DOM traversal | Low |
 | `createPathHistory` omits `?p=` for root route | Clean address bar on back-navigation | Low |
+
+**Already available (no core change needed):** The `ai` plugin exposes
+`wpai_preferred_text_models`, `wpai_preferred_image_models`, and
+`wpai_preferred_vision_models` filters that `connector-priority` hooks today.
+These cover `ai` plugin features but not direct `wp_ai_client_prompt()` callers.
 
 Of these, **#6 (`reorder()`)** combined with **#1+#2 (AI client priority)**
 would give complete end-to-end priority support with minimal core surface area.
