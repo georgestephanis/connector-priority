@@ -106,12 +106,16 @@ function wp_get_preferred_ai_connector(): ?string {
 
 /**
  * Adds `connectorPriorityOrder` to the data supplied to the connectors script
- * module for both the wp-admin integrated version and the standalone version.
+ * module for both the wp-admin integrated version and the standalone version,
+ * and reorders $data['connectors'] so the client receives them in priority
+ * order (core ksort()s by key, so we need to reorder after that runs).
  */
 add_filter(
 	'script_module_data_options-connectors-wp-admin',
 	static function ( array $data ): array {
-		$data['connectorPriorityOrder'] = wp_get_connector_priority_order();
+		$priority                       = wp_get_connector_priority_order();
+		$data['connectorPriorityOrder'] = $priority;
+		$data['connectors']             = _connector_priority_reorder( $data['connectors'] ?? array(), $priority );
 		return $data;
 	}
 );
@@ -119,10 +123,38 @@ add_filter(
 add_filter(
 	'script_module_data_options-connectors',
 	static function ( array $data ): array {
-		$data['connectorPriorityOrder'] = wp_get_connector_priority_order();
+		$priority                       = wp_get_connector_priority_order();
+		$data['connectorPriorityOrder'] = $priority;
+		$data['connectors']             = _connector_priority_reorder( $data['connectors'] ?? array(), $priority );
 		return $data;
 	}
 );
+
+/**
+ * Reorders a connectors map so the given IDs appear first, in order,
+ * with any remaining connectors appended in their original relative order.
+ *
+ * @param array<string, mixed> $connectors  Keyed connector map from core.
+ * @param string[]             $priority    Ordered connector IDs (highest first).
+ * @return array<string, mixed>
+ */
+function _connector_priority_reorder( array $connectors, array $priority ): array {
+	if ( empty( $connectors ) || empty( $priority ) ) {
+		return $connectors;
+	}
+	$reordered = array();
+	foreach ( $priority as $id ) {
+		if ( isset( $connectors[ $id ] ) ) {
+			$reordered[ $id ] = $connectors[ $id ];
+		}
+	}
+	foreach ( $connectors as $id => $data ) {
+		if ( ! isset( $reordered[ $id ] ) ) {
+			$reordered[ $id ] = $data;
+		}
+	}
+	return $reordered;
+}
 
 /**
  * Provides the data bundle consumed by our own priority-content.js module.

@@ -53,13 +53,17 @@ The plugin activates and saves priority data regardless, but the drag-and-drop
 list will be empty until at least one AI provider plugin is installed and its
 connector is registered.
 
-= Why isn't the priority automatically used when WordPress calls an AI provider? =
+= Is the priority used automatically or do I need extra code? =
 
-The current WordPress AI client (`php-ai-client`) iterates registered providers
-in activation order without consulting any priority setting. The bundled
-`CORE-CHANGES.md` proposes the upstream patches needed to wire this up fully.
-Until those land in core, use `wp_get_preferred_ai_connector()` explicitly when
-making AI calls from your own plugin.
+For the **Connectors screen UI** and all **`ai` plugin features** (excerpt generation,
+alt-text, content suggestions, etc.) the saved order is applied automatically — no
+extra code needed.
+
+For code that calls `wp_ai_client_prompt()` directly (outside the `ai` plugin),
+the priority is not yet applied automatically. The bundled `CORE-CHANGES.md` proposes
+the upstream patches needed to wire this up fully. Until those land in core, call
+`wp_get_preferred_ai_connector()` explicitly in your own plugin and pass the result
+to the AI client.
 
 = Does this affect Akismet or other non-AI connectors? =
 
