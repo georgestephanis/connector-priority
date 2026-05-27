@@ -115,7 +115,7 @@ add_filter(
 	static function ( array $data ): array {
 		$priority                       = wp_get_connector_priority_order();
 		$data['connectorPriorityOrder'] = $priority;
-		$data['connectors']             = _connector_priority_reorder( $data['connectors'] ?? array(), $priority );
+		$data['connectors']             = _connector_priority_reorder( is_array( $data['connectors'] ?? null ) ? $data['connectors'] : array(), $priority );
 		return $data;
 	}
 );
@@ -125,7 +125,7 @@ add_filter(
 	static function ( array $data ): array {
 		$priority                       = wp_get_connector_priority_order();
 		$data['connectorPriorityOrder'] = $priority;
-		$data['connectors']             = _connector_priority_reorder( $data['connectors'] ?? array(), $priority );
+		$data['connectors']             = _connector_priority_reorder( is_array( $data['connectors'] ?? null ) ? $data['connectors'] : array(), $priority );
 		return $data;
 	}
 );
@@ -144,16 +144,11 @@ function _connector_priority_reorder( array $connectors, array $priority ): arra
 	}
 	$reordered = array();
 	foreach ( $priority as $id ) {
-		if ( isset( $connectors[ $id ] ) ) {
+		if ( array_key_exists( $id, $connectors ) ) {
 			$reordered[ $id ] = $connectors[ $id ];
 		}
 	}
-	foreach ( $connectors as $id => $data ) {
-		if ( ! isset( $reordered[ $id ] ) ) {
-			$reordered[ $id ] = $data;
-		}
-	}
-	return $reordered;
+	return $reordered + $connectors;
 }
 
 /**
