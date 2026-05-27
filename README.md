@@ -36,11 +36,9 @@ When multiple AI provider connectors are active (e.g. OpenAI, Anthropic, and Goo
 
 The saved order is immediately available via `wp_get_connector_priority_order()`.
 
-**Runtime enforcement (what works today):** All WordPress `ai` plugin features —
-excerpt generation, content suggestions, alt-text, etc. — respect the saved order
-immediately. The plugin hooks `wpai_preferred_text_models`, `wpai_preferred_image_models`,
-and `wpai_preferred_vision_models` to re-sort the candidate model list by connector
-priority before the AI client picks a provider.
+**Runtime enforcement (what works today):**
+- **Connectors screen UI** — the main connector list renders AI providers in your saved priority order.
+- **`ai` plugin features** — excerpt generation, content suggestions, alt-text, etc. respect the saved order via the `wpai_preferred_text_models`, `wpai_preferred_image_models`, and `wpai_preferred_vision_models` filters.
 
 **What still needs a core change:** Code that calls `wp_ai_client_prompt()` directly
 (outside the `ai` plugin) bypasses these filters. Full enforcement for all callers

@@ -131,14 +131,20 @@ $preferred_order = apply_filters( 'wp_ai_provider_priority', [] );
 
 ## 4. Sort connectors by priority in `_wp_connectors_get_connector_script_module_data()`
 
-**File:** `wp-includes/connectors.php` — function
-`_wp_connectors_get_connector_script_module_data()`
+**Status: Resolved at the plugin level — no core change needed.**
 
-**Problem:** The current code does `ksort($connectors)` (alphabetical sort)
-before handing the list to the JavaScript. This loses any meaningful ordering
-for the UI.
+Core added `ksort( $connectors )` (see `wp-includes/connectors.php` L725-730)
+and registers `_wp_connectors_get_connector_script_module_data` on the
+`script_module_data_options-connectors-wp-admin` filter at priority 10.
+Because the plugin's filter callbacks on the same hook are registered later
+(plugins load after core), `$data['connectors']` is already fully populated
+when our callbacks run.
 
-**Proposed change:**
+The plugin now reorders `$data['connectors']` inside those callbacks via
+`_connector_priority_reorder()`, so the JavaScript receives connectors in the
+user's saved priority order without any core change.
+
+**Original proposed core change (kept for reference):**
 
 ```php
 // Replace ksort( $connectors ) with priority-aware ordering:
@@ -158,8 +164,9 @@ foreach ( $connectors as $id => $data ) {
 $data['connectors'] = $ordered;
 ```
 
-This means the connectors screen renders providers in the user's preferred order
-without any extra JavaScript.
+The plugin-level workaround is equivalent; the proposed core change would only
+matter if the goal were to bake priority ordering into core without requiring
+this plugin.
 
 ---
 
@@ -346,16 +353,18 @@ route never pollutes the URL.
 |--------|--------|------------|
 | `ProviderRegistry::findModelsMetadataForSupport()` accepts priority | AI client respects order | Low |
 | `PromptBuilder` applies `wp_ai_provider_priority` filter | Plugin can set preference for all callers | Low |
-| `_wp_connectors_get_connector_script_module_data()` sorts by priority | Connectors UI respects order | Low |
+| ~~`_wp_connectors_get_connector_script_module_data()` sorts by priority~~ | ~~Connectors UI respects order~~ | **Resolved** — plugin reorders via filter |
 | `applyFilters` hooks in `stage.tsx` | Plugins can inject UI cleanly | Medium |
 | `WP_Connector_Registry::reorder()` | Full chain priority in one hook | Low-Medium |
 | Always render `header-actions` with stable global class | Plugins can inject without DOM traversal | Low |
 | `createPathHistory` omits `?p=` for root route | Clean address bar on back-navigation | Low |
 
-**Already available (no core change needed):** The `ai` plugin exposes
-`wpai_preferred_text_models`, `wpai_preferred_image_models`, and
-`wpai_preferred_vision_models` filters that `connector-priority` hooks today.
-These cover `ai` plugin features but not direct `wp_ai_client_prompt()` callers.
+**Already handled without core changes:**
+- The `ai` plugin exposes `wpai_preferred_text_models`, `wpai_preferred_image_models`,
+  and `wpai_preferred_vision_models` filters that `connector-priority` hooks today.
+  These cover `ai` plugin features but not direct `wp_ai_client_prompt()` callers.
+- The connectors screen UI now delivers connectors to the client in priority order
+  via the `script_module_data_options-connectors-wp-admin` filter (see §4).
 
 Of these, **#6 (`reorder()`)** combined with **#1+#2 (AI client priority)**
 would give complete end-to-end priority support with minimal core surface area.

@@ -65,6 +65,7 @@ wp_get_preferred_ai_connector()            ← PHP API for other plugins
   ↓
 script_module_data_connector-priority      ← populates JSON tag read by JS
 script_module_data_options-connectors-wp-admin  ← adds connectorPriorityOrder
+                                               ← reorders data['connectors'] by priority
   ↓
 wpai_preferred_text_models   \
 wpai_preferred_image_models   ├── ai plugin filters (partial workaround)
@@ -147,12 +148,18 @@ All three entry points mount the Boot module and render content inside
 - [ ] Reload page; the saved order persists.
 - [ ] `wp_get_connector_priority_order()` returns the saved order (padded with
       any unordered connectors at the end).
+- [ ] Return to Settings > Connectors; the main connector list shows AI providers
+      in the saved priority order (highest-priority first).
 - [ ] Deactivate plugin; Settings > Connectors returns to normal.
 
 ## Known limitations
 
 The saved priority order is **partially** honoured at runtime:
 
+- **Connectors screen UI**: AI connectors are now delivered to the JavaScript in
+  priority order via `_connector_priority_reorder()` on the
+  `script_module_data_options-connectors-wp-admin` /
+  `script_module_data_options-connectors` filters — fully working today.
 - **`ai` plugin features** (anything using `Abstract_Ability::set_provider_model_preference()`):
   priority is applied today via the `wpai_preferred_text_models`,
   `wpai_preferred_image_models`, and `wpai_preferred_vision_models` filters.
